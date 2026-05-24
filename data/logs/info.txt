@@ -1,0 +1,16 @@
+I'm not 100% sure on the structure yet, but this will mirror raw and will contain info on:
+1. URL scraped
+2. Whether there is useful data yet (for example if the race hasn't started yet)
+
+
+Example logs ?
+
+years.csv
+
+url, year, timestamp, status
+<url>, 2026, 24-05-2026 21:59:12, (flag. Figure out later)
+
+seasons.csv
+
+url, year, expected sessions, logged sessions, timestamp
+

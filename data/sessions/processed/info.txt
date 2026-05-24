@@ -1,0 +1,2 @@
+This contains all of the processed data scraped from the F1 website in .csv form. 
+It should be human readable and insertable into tables in the database

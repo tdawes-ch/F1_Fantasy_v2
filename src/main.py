@@ -6,3 +6,7 @@ convert html data into csv ->
 put csv into database -> 
 perform calculations for f1 fantasy team.
 """
+
+from config.config import RAW_DATA_DIR
+
+print(RAW_DATA_DIR)

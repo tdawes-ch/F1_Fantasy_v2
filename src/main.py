@@ -8,5 +8,12 @@ perform calculations for f1 fantasy team.
 """
 
 from config.config import RAW_DATA_DIR
+import datetime
+from logging_utils import logger
 
 print(RAW_DATA_DIR)
+
+print(datetime.datetime.now().strftime("%Y")) # https://www.w3schools.com/python/python_datetime.asp
+
+logger.runtime()
+

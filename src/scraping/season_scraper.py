@@ -14,9 +14,9 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 
 
-def download_race_pages(url: str = "", start_year: int = 2, end_year: int = 2020):
+def download_race_pages(output_folder: str, url: str, start_year: int = 2000, end_year: int = ):
     for year in range(start_year, end_year + 1):
-        url = BASE_URL.format(year=year)
+        url_formatted = url.format(year=year)
 
         print(f"Downloading {year}...")
 

@@ -9,3 +9,5 @@ def test():
 def runtime():
     print("hi")
     print(config.config.LOG_DIR)
+
+runtime()

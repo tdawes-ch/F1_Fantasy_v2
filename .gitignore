@@ -1,2 +1,18 @@
-__pycache__/
+# --- Python Virtual Environments ---
+.venv/
+venv/
+ENV/
+env/
+
+# --- Python Cache & Compiled Files ---
+**/__pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# --- Environment Secrets & Local Data ---
+.env
+*.env
+.secret

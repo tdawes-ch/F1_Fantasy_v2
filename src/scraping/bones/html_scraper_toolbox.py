@@ -14,13 +14,14 @@ must:
 from bs4 import BeautifulSoup
 import validators
 import requests
+from urllib.parse import urlparse
 
 class ScraperError(Exception):
     # Base exception for scraper errors
     pass
 
 
-class InvalidURLError(ScraperError):
+class InvalidUrlError(ScraperError):
     # something up with the url
     pass
 
@@ -29,12 +30,27 @@ class FetchError(ScraperError):
     # url is okay, but something wrong with website. Not code 200 OK
     pass
 
-
 class FileWriteError(ScraperError):
+    # something up when writing the file
     pass
 
-def validate_url(url): # obsolete
-    ...
+class FilepathError(Exception):
+    pass
+
+def validate_url(url: str):
+    # uses validators and urllib.parse.urlparse to validate
+    if not validators.url(url):
+        parsed = urlparse(url)
+        error_type = "InvalidUrlError"
+        if not parsed.scheme:
+            raise InvalidUrlError(f"{error_type}: URL is missing scheme (http/https)")
+        elif not parsed.netloc:
+            raise InvalidUrlError(f"{error_type}: URL is missing domain")
+        else:
+            raise InvalidUrlError(f"{error_type}: Invalid URL format")
+    else:
+        return url
+
 
 def validate_output(path):
     ...
@@ -49,7 +65,7 @@ def save_html(content, path):
     ...
 
 def html_scraper(url, output_path):
-    if not validators.url(url):
+    if not True:
         # isn't a valid url
         pass
     else: 
@@ -59,10 +75,8 @@ def html_scraper(url, output_path):
             pass
         else:
             # output path is valid
-            
-    
-
-    if response.raise_for_status() != None:
+            pass
+    if url.raise_for_status() != None:
         # log url fail
         quit()
     else:
@@ -72,7 +86,10 @@ def html_scraper(url, output_path):
     prettified_html = html.prettify()
     save_html(prettified_html, output_path)
 
-html_scraper("test","test")
+try:
+    validate_url("http://grnignaigndpag.com")
+except ScraperError as e:
+    print(e)
 
 #response = requests.get(url.format(fyear=2020))
 #print(response.text[:10])

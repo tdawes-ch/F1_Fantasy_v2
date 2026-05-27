@@ -1,0 +1,4 @@
+This folder will contain pipelines for certain tasks. Example:
+1. Extract years to html -> export to csv -> import to database (years)
+2. Read years csv -> extract race details -> extract each session for each race -> export to csv -> import to database
+3. 

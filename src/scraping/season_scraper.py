@@ -11,9 +11,13 @@ data/sessions/raw/<year>/<year>.html
 """
 import requests
 from pathlib import Path
-from bs4 import BeautifulSoup
 import datetime
+import scraping.bones as bones
 
+
+def download_years(start_year: int = 2000, end_year: int = int(datetime.datetime.now().strftime("%Y"))):
+    url = "https://www.formula1.com/en/results/{fyear}/races"
+    ...
 
 def download_race_pages( output_folder: str, url: str, start_year: int = 2000, end_year: int = int(datetime.datetime.now().strftime("%Y")) ):
     for year in range(start_year, end_year + 1):

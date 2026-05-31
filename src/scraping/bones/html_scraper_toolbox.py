@@ -14,30 +14,12 @@ must:
 from bs4 import BeautifulSoup
 import validators
 import requests
+from pathlib import Path
 from urllib.parse import urlparse
-
-class ScraperError(Exception):
-    # Base exception for scraper errors
-    pass
+from scraping.bones.errors import (ScraperError, InvalidUrlError, FetchError, FileWriteError, FilepathError)
 
 
-class InvalidUrlError(ScraperError):
-    # something up with the url
-    pass
-
-
-class FetchError(ScraperError):
-    # url is okay, but something wrong with website. Not code 200 OK
-    pass
-
-class FileWriteError(ScraperError):
-    # something up when writing the file
-    pass
-
-class FilepathError(Exception):
-    pass
-
-def validate_url(url: str):
+def validate_url(url: str) -> str:
     # uses validators and urllib.parse.urlparse to validate
     if not validators.url(url):
         parsed = urlparse(url)
@@ -52,45 +34,57 @@ def validate_url(url: str):
         return url
 
 
-def validate_output(path):
-    ...
+def validate_output(filepath) -> Path:
+    path = Path(filepath)
 
-def download_html(url):
-    html = requests.get(url)
+    if not path.name:
+        raise FilepathError("Output path must include a filename")
 
-    return 
-    ...
+    if path.suffix.lower() not in {".html"}:
+        raise FilepathError("Unsupported output file type")
 
-def save_html(content, path):
-    ...
+    return path
+
+
+def fetch_url(url: str) -> str:
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.text
+
+    except requests.exceptions.MissingSchema:
+        raise FetchError("Invalid URL format (missing schema like http:// or https://)")
+
+    except requests.exceptions.InvalidURL:
+        raise FetchError("Invalid URL provided")
+
+    except requests.exceptions.Timeout:
+        raise TimeoutError("Request timed out")
+
+    except requests.exceptions.ConnectionError:
+        raise ConnectionError("Failed to connect to the server")
+
+    except requests.exceptions.HTTPError as e:
+        # This covers non-200 responses after raise_for_status()
+        raise RuntimeError(f"HTTP error occurred: {e}")
+
+    except requests.exceptions.RequestException as e:
+        # Catch-all for anything requests can throw
+        raise RuntimeError(f"Unexpected request error: {e}")
+
+
+def save_html(html, output_path):
+    path = validate_output(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+
+    tmp_path.write_text(html, encoding="utf-8")
+    tmp_path.replace(path)
+
 
 def html_scraper(url, output_path):
-    if not True:
-        # isn't a valid url
-        pass
-    else: 
-        # is a valid url
-        if not validate_output(output_path):
-            # output path isn't valid
-            pass
-        else:
-            # output path is valid
-            pass
-    if url.raise_for_status() != None:
-        # log url fail
-        quit()
-    else:
-        validate_output(output_path)
-    
-    html = download_html(url)
+    validate_url(url) # is a valid url 
+    html = BeautifulSoup(fetch_url(url),"html.parser")
     prettified_html = html.prettify()
     save_html(prettified_html, output_path)
-
-try:
-    validate_url("http://grnignaigndpag.com")
-except ScraperError as e:
-    print(e)
-
-#response = requests.get(url.format(fyear=2020))
-#print(response.text[:10])
-#print(response.raise_for_status()==None)

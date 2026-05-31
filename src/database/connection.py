@@ -1,3 +1,0 @@
-''' 
-manages connection to db
-'''

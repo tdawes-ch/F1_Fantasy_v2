@@ -12,34 +12,26 @@ data/sessions/raw/<year>/<year>.html
 import requests
 from pathlib import Path
 import datetime
-import scraping.bones as bones
+import csv
+from scraping.bones import html_scraper_toolbox as scraper
+from config.config import RAW_DATA_DIR, LOG_DATA_DIR
+import toolbox.file_management as fm
 
+# 1. Check if years.csv exists, create file if it doesn't
 
-def download_years(start_year: int = 2000, end_year: int = int(datetime.datetime.now().strftime("%Y"))):
-    url = "https://www.formula1.com/en/results/{fyear}/races"
-    ...
+def create_path(year: int) -> Path:
+    path = Path(RAW_DATA_DIR) / str(year) / f"{str(year)}.html"
+    return path
 
-def download_race_pages( output_folder: str, url: str, start_year: int = 2000, end_year: int = int(datetime.datetime.now().strftime("%Y")) ):
-    for year in range(start_year, end_year + 1):
-        print(year)
+def log(url, year, filepath):
+    pass
+    
+def download_years(base_url: str = "https://www.formula1.com/en/results/{fyear}/races",
+                   start_year: int = 1950,
+                   end_year: int = int(datetime.datetime.now().strftime("%Y"))
+                   ):
+    for year in range(start_year, end_year+1):
+        url = base_url.format(fyear = year)
+        scraper.html_scraper(url,create_path(year))
 
-        print(f"Downloading {year}...")
-
-        response = requests.get(url)
-        response.raise_for_status()
-
-        # Prettify
-        html = BeautifulSoup(response.text, "html.parser")
-        prettified_html = html.prettify()
-
-        # Create folder if not exists
-        folder = Path(f"data/raw/{year}")
-        folder.mkdir(parents=True, exist_ok=True)
-
-        # Save file
-        file_path = folder / f"{year}_races.html"
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(prettified_html)
-
-        print(f"Saved to {file_path}")
+download_years("https://www.formula1.com/en/results/{fyear}/races",2022,2025)

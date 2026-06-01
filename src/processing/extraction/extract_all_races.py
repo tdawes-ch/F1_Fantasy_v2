@@ -54,11 +54,3 @@ def extract_season_races(html_path: str, csv_path: str, base_url: str = ""):
     html = fm.load_html_file(html_path)
     results = _extract_items(html,base_url)
     fm.write_to_csv(results, csv_path, ["url", "race", "status"])
-
-
-try:
-    extract_season_races(r"C:\Users\thoma\OneDrive\Documents\Python\F1_Fantasy_v2\data\sessions\raw\2024\2024.html",
-                      r"C:\Users\thoma\OneDrive\Documents\Python\F1_Fantasy_v2\data\sessions\processed\2024\2024.csv",
-                      BASE_URL)
-except FileNotFoundError as e:
-    print(e)

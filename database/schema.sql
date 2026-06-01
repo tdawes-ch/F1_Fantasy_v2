@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
 );
 
 -- session data
-CREATE TABLE scrape_sessions (
+CREATE TABLE IF NOT EXISTS scrape_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     year INTEGER,
     round INTEGER,

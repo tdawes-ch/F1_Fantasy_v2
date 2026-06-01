@@ -45,5 +45,3 @@ def download_years(base_url: str = "https://www.formula1.com/en/results/{fyear}/
                                 1,
                                 datetime.datetime.now())
                             )
-
-download_years("https://www.formula1.com/en/results/{fyear}/races",2022,2025)

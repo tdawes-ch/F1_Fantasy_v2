@@ -9,13 +9,12 @@ Gets:
 Outputs html page into:
 data/sessions/raw/<year>/<year>.html
 """
-import requests
 from pathlib import Path
 import datetime
-import csv
 from scraping.bones import html_scraper_toolbox as scraper
-from config.config import RAW_DATA_DIR, LOG_DATA_DIR
+from config.config import RAW_DATA_DIR, LOG_DATA_DIR, DB_PATH
 import toolbox.file_management as fm
+from database.management import connection
 
 # 1. Check if years.csv exists, create file if it doesn't
 
@@ -33,5 +32,16 @@ def download_years(base_url: str = "https://www.formula1.com/en/results/{fyear}/
     for year in range(start_year, end_year+1):
         url = base_url.format(fyear = year)
         scraper.html_scraper(url,create_path(year))
-
-download_years("https://www.formula1.com/en/results/{fyear}/races",2022,2025)
+        with connection.get_db(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""INSERT INTO scrape_seasons (year, url, scraped, last_scraped)
+                              VALUES (?, ?, ?, ?)
+                              ON CONFLICT(year) DO UPDATE SET
+                                  url = EXCLUDED.url,
+                                  scraped = EXCLUDED.scraped,
+                                  last_scraped = EXCLUDED.last_scraped;
+                           """,(year,
+                                url,
+                                1,
+                                datetime.datetime.now())
+                            )

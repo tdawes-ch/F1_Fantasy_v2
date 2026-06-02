@@ -85,7 +85,6 @@ def save_html(html, output_path):
 
 def html_scraper(url, output_path):
     validate_url(url) # is a valid url 
-    print(url)
     html = BeautifulSoup(fetch_url(url),"html.parser")
     prettified_html = html.prettify()
     save_html(prettified_html, output_path)

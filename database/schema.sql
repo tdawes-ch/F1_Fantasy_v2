@@ -17,6 +17,7 @@ Creates all of the tables for the F1 fantasy program.
 CREATE TABLE IF NOT EXISTS scrape_seasons (
     year INTEGER PRIMARY KEY,
     url TEXT,
+    filepath TEXT UNIQUE,
     expected_races INTEGER,
     scraped_races INTEGER DEFAULT 0,
     has_races BOOLEAN DEFAULT 0,
@@ -26,12 +27,13 @@ CREATE TABLE IF NOT EXISTS scrape_seasons (
 
 -- weekend data
 CREATE TABLE IF NOT EXISTS scrape_race_weekends (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    race_id INTEGER PRIMARY KEY,
     year INTEGER,
     round INTEGER,
     race_name TEXT,
     circuit TEXT,
     url TEXT UNIQUE,
+    filepath TEXT UNIQUE,
     scraped BOOLEAN DEFAULT 0,
     has_sessions BOOLEAN DEFAULT 0,
     scraped_on TIMESTAMP,
@@ -45,6 +47,7 @@ CREATE TABLE IF NOT EXISTS scrape_sessions (
     round INTEGER,
     session_type TEXT,   -- FP1, FP2, FP3, Quali, Race
     url TEXT UNIQUE,
+    filepath TEXT UNIQUE,
     scraped BOOLEAN DEFAULT 0,
     has_data BOOLEAN DEFAULT 0,
     scraped_on TIMESTAMP,

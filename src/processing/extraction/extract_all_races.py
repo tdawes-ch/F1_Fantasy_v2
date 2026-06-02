@@ -4,11 +4,11 @@ for the first race we can get the list of all races for the season
 save this to log file seasons.csv for total races
 '''
 from bs4 import BeautifulSoup
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import datetime
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 import toolbox.file_management as fm
-from config.config import BASE_URL, DB_PATH
+from config.config import DB_PATH
 from database.management import connection
 
 CLASS_NAME = "DropdownMenu-module_dropdown-item__T0Pcm"
@@ -42,7 +42,7 @@ def _extract_items(soup: BeautifulSoup, base_url: str) -> list[dict]:
             continue
 
         results.append({
-            "url": urljoin(base_url, href),
+            "url": urljoin(base_url, href), # type: ignore
             "race": info,
         })
         
@@ -50,22 +50,23 @@ def _extract_items(soup: BeautifulSoup, base_url: str) -> list[dict]:
 
 
 def extract_season_races(html_path: Path | str, csv_path: Path | str, base_url: str = ""):
-    # takes path to the .html file, output csv path,
-
+    # takes path to the .html file, output csv path, and a base url
     # in case string gets passed through
     html_path = Path(html_path)
     csv_path = Path(csv_path)
-    # does stuff for the csv
+
+    # does stuff for the csv. Can maybe put this in an if statement if I pass through a flag for whether to save CSVs or not.
     html = fm.load_html_file(html_path)
     results = _extract_items(html,base_url)
     fm.write_to_csv(results, csv_path, ["url", "race"])
+    
     # does database stuff
     year = html_path.parent.name
-    write_results_to_db(results,year)
+    write_results_to_db(results, year)
 
 def write_results_to_db(results, year):
     # do the scrape_seasons update
-    with connection.get_db(DB_PATH) as conn:
+    with connection.get_db(DB_PATH) as conn: # type: ignore
         cursor = conn.cursor()
         cursor.execute("""UPDATE scrape_seasons
                           SET expected_races = ?
@@ -74,21 +75,30 @@ def write_results_to_db(results, year):
                              year)
                       )
     # update the other table (scrape_race_weekends)
-    with connection.get_db(DB_PATH) as conn:
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
         i = 1
         for race in results:
-            # 
+            url = race["url"]
+            path = PurePosixPath(urlparse(url).path)
+            try:
+                races_index = path.parts.index('races')
+                race_id = path.parts[races_index + 1]
+            except ValueError:
+                print("'races' not found in URL structure")
+                race_id = None
+
             cursor.execute("""
-                            INSERT INTO scrape_race_weekends (year, round, race_name, url, scraped, scraped_on)
-                            VALUES (?, ?, ?, ?, ?, ?)
+                            INSERT INTO scrape_race_weekends (race_id, year, round, race_name, url, scraped, scraped_on)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
                             ON CONFLICT(url) DO UPDATE SET
+                                race_id = EXCLUDED.race_id,
                                 year = EXCLUDED.year,
                                 round = EXCLUDED.round,
                                 race_name = EXCLUDED.race_name,
                                 scraped = EXCLUDED.scraped,
                                 scraped_on = EXCLUDED.scraped_on;
                             """,
-                            (year, i, race["race"], race["url"], 0, datetime.datetime.now())
+                            (race_id, year, i, race["race"], url, 0, datetime.datetime.now())
                           )
             i+=1

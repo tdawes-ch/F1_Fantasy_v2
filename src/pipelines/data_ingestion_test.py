@@ -4,7 +4,7 @@ from database import init_db
 from database.management import connection as con
 from config.config import RAW_DATA_DIR, PROCESSED_DATA_DIR
 
-init_db.init_db()
+init_db.init_db() # goes in main
 
 base_url = "https://www.formula1.com/en/results/{fyear}/races"
 start_year = 2020

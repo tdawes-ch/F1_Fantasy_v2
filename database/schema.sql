@@ -12,6 +12,13 @@ Creates all of the tables for the F1 fantasy program.
 */
 
 -- SCRAPER DATA TABLES
+-- Master scraper table (all)
+CREATE TABLE IF NOT EXISTS scrape_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    url TEXT,
+    filepath TEXT,
+    last_scraped TIMESTAMP
+);
 
 -- season data
 CREATE TABLE IF NOT EXISTS scrape_seasons (
@@ -36,23 +43,23 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
     filepath TEXT UNIQUE,
     scraped BOOLEAN DEFAULT 0,
     has_sessions BOOLEAN DEFAULT 0,
-    scraped_on TIMESTAMP,
+    last_scraped TIMESTAMP,
     FOREIGN KEY (year) REFERENCES seasons(year)
 );
 
 -- session data
 CREATE TABLE IF NOT EXISTS scrape_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    race_id INTEGER,
     year INTEGER,
-    round INTEGER,
     session_type TEXT,   -- FP1, FP2, FP3, Quali, Race
     url TEXT UNIQUE,
     filepath TEXT UNIQUE,
     scraped BOOLEAN DEFAULT 0,
     has_data BOOLEAN DEFAULT 0,
-    scraped_on TIMESTAMP,
-    FOREIGN KEY (year) REFERENCES seasons(year),
-    FOREIGN KEY (round) REFERENCES race_weekends(round)
+    last_scraped TIMESTAMP,
+    FOREIGN KEY (year) REFERENCES scrape_seasons(year),
+    FOREIGN KEY (race_id) REFERENCES scrape_race_weekends(round)
 );
 
 -- f1 data tables

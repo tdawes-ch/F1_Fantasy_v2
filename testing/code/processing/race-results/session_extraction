@@ -1,0 +1,32 @@
+import requests
+from bs4 import BeautifulSoup
+from pathlib import Path, PurePosixPath
+
+url = "https://www.formula1.com/en/results/2026/races/1279/australia/race-result"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
+
+
+def _extract_items(soup: BeautifulSoup, url: str) -> list[str]:
+    print(f"url: {url}")
+    base_url = url.replace("https://www.formula1.com","")
+    base_url = str(PurePosixPath(base_url).parent).lower()
+
+    list_class = "DropdownMenu-module_dropdown-item__T0Pcm"
+    a_link_class = "DropdownMenuItem-module_dropdown-menu-item__6Y3-v typography-module_body-s-semibold__O2lOH"
+    # takes in html in the form of soup, also base_url e.g. "https://www.formula1.com/en/results/2025/races"
+    results = []
+
+    for li in soup.find_all("li", class_ = list_class):
+        for a in li.find_all("a", class_ = a_link_class):
+            #print(a["href"])
+            #print(url)
+            if base_url not in (str(a["href"]).lower()):
+                continue
+            elif not a.find("title"):
+                results.append(a.get_text())
+    return results
+
+#print(_extract_items(soup,url))
+
+print(Path(url).parent)

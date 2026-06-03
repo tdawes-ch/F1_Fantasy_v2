@@ -14,8 +14,11 @@ must:
 from bs4 import BeautifulSoup
 import validators
 import requests
+import datetime
 from pathlib import Path
 from urllib.parse import urlparse
+from database.management import connection
+from config.config import DB_PATH
 from scraping.bones.errors import (ScraperError, InvalidUrlError, FetchError, FileWriteError, FilepathError)
 
 
@@ -82,9 +85,19 @@ def save_html(html, output_path):
     tmp_path.write_text(html, encoding="utf-8")
     tmp_path.replace(path)
 
+def log_to_db(url: str, output_path: Path):
+    with connection.get_db(DB_PATH) as conn: # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""
+                        INSERT INTO scrape_log (url, filepath, last_scraped)
+                        VALUES (?, ?, ?);
+                        """,
+                        (url, str(output_path), datetime.datetime.now())
+                        )
 
-def html_scraper(url, output_path):
+def html_scraper(url: str, output_path: Path):
     validate_url(url) # is a valid url 
     html = BeautifulSoup(fetch_url(url),"html.parser")
     prettified_html = html.prettify()
     save_html(prettified_html, output_path)
+    log_to_db(url, output_path)

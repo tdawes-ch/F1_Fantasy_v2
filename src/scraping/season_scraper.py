@@ -22,6 +22,22 @@ def create_path(year: int) -> Path:
     path = Path(RAW_DATA_DIR) / str(year) / f"{str(year)}.html"
     return path
 
+def write_to_db(year, url, output_path):
+    # writes the scraper update to the database
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""INSERT INTO scrape_seasons (year, url, filepath, scraped, last_scraped)
+                            VALUES (?, ?, ?, ?, ?)
+                            ON CONFLICT(year) DO UPDATE 
+                            SET filepath = EXCLUDED.filepath,
+                                scraped = EXCLUDED.scraped,
+                                last_scraped = EXCLUDED.last_scraped;
+                        """,(year,
+                            url,
+                            str(output_path),
+                            1,
+                            datetime.datetime.now())
+                            )
     
 def download_years(base_url: str = "https://www.formula1.com/en/results/{fyear}/races",
                    start_year: int = 1950,
@@ -29,21 +45,7 @@ def download_years(base_url: str = "https://www.formula1.com/en/results/{fyear}/
                    ):
     for year in range(start_year, end_year+1):
         url = base_url.format(fyear = year)
-        output_path = create_path(year)
+        output_path = create_path(year) # path
         scraper.html_scraper(url, output_path)
-        with connection.get_db(DB_PATH) as conn:  # type: ignore
-            cursor = conn.cursor()
-            cursor.execute("""INSERT INTO scrape_seasons (year, url, filepath, scraped, last_scraped)
-                              VALUES (?, ?, ?, ?, ?)
-                              ON CONFLICT(year) DO UPDATE 
-                              SET url = EXCLUDED.url,
-                                  filepath = EXCLUDED.filepath,
-                                  scraped = EXCLUDED.scraped,
-                                  last_scraped = EXCLUDED.last_scraped
-                              WHERE url <> EXCLUDED.url;
-                           """,(year,
-                                url,
-                                str(output_path),
-                                1,
-                                datetime.datetime.now())
-                            )
+        write_to_db(year, url, output_path)
+

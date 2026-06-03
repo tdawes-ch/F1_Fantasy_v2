@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path, PurePosixPath
 import datetime
 from urllib.parse import urljoin, urlparse
+from toolbox import extract_race_id
 import toolbox.file_management as fm
 from config.config import DB_PATH
 from database.management import connection
@@ -80,16 +81,9 @@ def write_results_to_db(results, year):
         i = 1
         for race in results:
             url = race["url"]
-            path = PurePosixPath(urlparse(url).path)
-            try:
-                races_index = path.parts.index('races')
-                race_id = path.parts[races_index + 1]
-            except ValueError:
-                print("'races' not found in URL structure")
-                race_id = None
-
+            race_id = extract_race_id.from_url(url)
             cursor.execute("""
-                            INSERT INTO scrape_race_weekends (race_id, year, round, race_name, url, scraped, scraped_on)
+                            INSERT INTO scrape_race_weekends (race_id, year, round, race_name, url, scraped, last_scraped)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
                             ON CONFLICT(url) DO UPDATE SET
                                 race_id = EXCLUDED.race_id,
@@ -97,7 +91,7 @@ def write_results_to_db(results, year):
                                 round = EXCLUDED.round,
                                 race_name = EXCLUDED.race_name,
                                 scraped = EXCLUDED.scraped,
-                                scraped_on = EXCLUDED.scraped_on;
+                                last_scraped = EXCLUDED.last_scraped;
                             """,
                             (race_id, year, i, race["race"], url, 0, datetime.datetime.now())
                           )

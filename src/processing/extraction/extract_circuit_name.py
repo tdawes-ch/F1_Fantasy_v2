@@ -32,8 +32,9 @@ def _extract_circuit(soup: BeautifulSoup, url: str) -> list[dict]:
 def write_results_to_db(results, race_id):
     pass 
 
-url = "https://www.formula1.com/en/results/2026/races/1286/monaco/race-result"
-response = requests.get(url)
-soup = BeautifulSoup(response.text, "html.parser")
+def test():
+    url = "https://www.formula1.com/en/results/2026/races/1286/monaco/race-result"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
 
-print(_extract_circuit(soup,url))
+    print(_extract_circuit(soup,url))

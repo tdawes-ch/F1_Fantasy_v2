@@ -34,14 +34,14 @@ CREATE TABLE IF NOT EXISTS scrape_seasons (
 
 -- weekend data
 CREATE TABLE IF NOT EXISTS scrape_race_weekends (
-    race_id INTEGER PRIMARY KEY,
-    year INTEGER,
-    round INTEGER,
-    race_name TEXT,
-    circuit TEXT,
-    url TEXT UNIQUE,
-    filepath TEXT UNIQUE,
-    scraped BOOLEAN DEFAULT 0,
+    race_id INTEGER PRIMARY KEY, -- 1258
+    year INTEGER, -- 2021
+    round INTEGER, -- 3
+    race_name TEXT, -- United Kingdome
+    circuit TEXT, -- Silverstone
+    url TEXT UNIQUE, -- www.f1.com
+    filepath TEXT UNIQUE, -- path/to/html
+    scraped BOOLEAN DEFAULT 0, -- 0
     has_sessions BOOLEAN DEFAULT 0,
     last_scraped TIMESTAMP,
     FOREIGN KEY (year) REFERENCES seasons(year)
@@ -103,6 +103,8 @@ CREATE TABLE IF NOT EXISTS race_driver_constructor_history (
 CREATE TABLE IF NOT EXISTS race_races (
     race_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
+    circuit TEXT NOT NULL,
+    city TEXT NOT NULL,
     season INTEGER NOT NULL,
     round INTEGER, -- Helps sort the races in chronological calendar order
     FOREIGN KEY (season) REFERENCES scrape_seasons (year)

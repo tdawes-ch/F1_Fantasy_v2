@@ -22,6 +22,8 @@ from bs4 import BeautifulSoup
 import requests # for testing
 from urllib.parse import urljoin
 from pathlib import Path, PurePosixPath
+from toolbox import extract_race_id
+from config.config import DB_PATH
 
 def _extract_items(soup: BeautifulSoup, url: str) -> list[dict]:
     # url must be something like "https://www.formula1.com/en/results/2026/races/1279/australia/race-result" 
@@ -53,11 +55,48 @@ def _extract_items(soup: BeautifulSoup, url: str) -> list[dict]:
                                 })
     return results # this is a dictionary of each session and its url
 
-def write_to_db(results, year):
-    pass 
 
-url = "https://www.formula1.com/en/results/2026/races/1279/australia/race-result"
-response = requests.get(url)
-soup = BeautifulSoup(response.text, "html.parser")
+def write_to_db(results: list[dict], url: str, year: int):
+    # must write to scrape_race_weekends (has_sessions)
+    race_id = extract_race_id.from_url(url) # get race_id
 
-print(_extract_items(soup,url))
+    if results:
+        # write 0 to has_sessions
+        has_sessions = 0
+    else:
+        # write 1 to has_sessions
+        has_sessions = 1
+        
+    with connection.get_db(DB_PATH) as conn: # type: ignore
+        cursor = conn.cursor()
+        # update scrape_race_weekends
+        cursor.execute("""
+                        UPDATE scrape_race_weekends
+                           SET has_sessions = ?
+                         WHERE race_id = ? ;
+                        """,
+                        (has_sessions, )
+                        )
+        # update scrape_sessions
+        for session in results:
+            cursor.execute("""
+                            INSERT INTO scrape_sessions (race_id, year, session_type, url)
+                            VALUES (?, ?, ?, ?);
+                            """,
+                            (race_id,
+                            year,
+                            session["session_name"],
+                            session["url"]
+                            )
+                           )
+            
+def main(html: BeautifulSoup, url: str, year):
+    sessions = _extract_items(soup=html, url=url)
+    write_to_db(results=sessions, url=url, year=year)
+
+def test():
+    url = "https://www.formula1.com/en/results/2026/races/1279/australia/race-result"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    print(_extract_items(soup,url))

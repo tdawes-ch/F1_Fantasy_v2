@@ -9,12 +9,10 @@ from bs4 import BeautifulSoup
 import requests # for testing
 from urllib.parse import urljoin
 from pathlib import Path, PurePosixPath
+from config.config import DB_PATH
 
-def _extract_circuit(soup: BeautifulSoup, url: str) -> list[dict]:
-    # url must be something like "https://www.formula1.com/en/results/2026/races/1279/australia/race-result" 
-    # (output from scrape_race_weekends.url in db)
-
-    # Sets classes found in f1 site. Stupid names, let's hope they don't change
+def _extract_circuit(soup: BeautifulSoup) -> list[dict]:
+    # Sets classes found in f1 site. Stupid arbitrary names, let's hope they don't change
     div_class = "flex flex-col gap-px-6 text-text-3"
     p_class = "typography-module_body-xs-semibold__Fyfwn"
 
@@ -29,12 +27,23 @@ def _extract_circuit(soup: BeautifulSoup, url: str) -> list[dict]:
             })
     return results # this is a dictionary of each session and its url
 
-def write_results_to_db(results, race_id):
+def write_circuit_to_db(results: list[dict], race_id: int):
+    with connection.get_db(DB_PATH) as conn: # type: ignore
+        cursor = conn.cursor()
+        for result in results:
+            cursor.execute("""
+                            UPDATE ;
+                            """,
+                            ()
+                            )
     pass 
+
+def main():
+    pass
 
 def test():
     url = "https://www.formula1.com/en/results/2026/races/1286/monaco/race-result"
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    print(_extract_circuit(soup,url))
+    print(_extract_circuit(soup))

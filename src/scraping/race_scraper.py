@@ -21,3 +21,9 @@ e.g.:
 https://www.formula1.com/en/results/2026/races/1287/barcelona-catalunya/race-result
 
 """
+
+def from_csv():
+    pass
+
+def from_db():
+    pass

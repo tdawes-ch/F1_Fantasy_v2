@@ -11,16 +11,13 @@ for year in season:
         query scrape_race_weekends for urls where year = year
         export into urls []
     # once urls are collected:
-    for url in urls[]:
-        output_path = x
-        scrape
-        extract_circuit_name
-        extract_sessions
+    send urls to race_scraper? (yes)
+    races are now all scraped, can then use the same urls to get other race data (or run that inside race_scraper)
 
 And then we can go through each session. Similar format to this 
 '''
 
-def _get_urls_from_csv ():
+def _get_urls_from_csv():
     pass
 
 def _get_urls_from_db():

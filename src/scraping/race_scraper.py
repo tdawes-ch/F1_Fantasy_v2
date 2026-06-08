@@ -20,10 +20,21 @@ We will scrape each race_url and go to /race-result
 e.g.:
 https://www.formula1.com/en/results/2026/races/1287/barcelona-catalunya/race-result
 
+for url in urls[]:
+    output_path = x
+    scrape
+    extract_circuit_name
+    extract_sessions
+
 """
 
 def from_csv():
     pass
 
 def from_db():
+    pass
+
+def scrape_races(urls:list[dict], year:int):
+    for url in urls:
+        pass
     pass

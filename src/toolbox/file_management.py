@@ -37,5 +37,3 @@ def load_csv(csv_path: Path | str) -> list[dict]:
         for row in reader:
             results.append(row)
     return results
-
-def get

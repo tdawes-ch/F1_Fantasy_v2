@@ -1,40 +1,61 @@
 """
-finds each race from the output csvs of season_cleaner.py
+Copied structure from season_scraper
 
-Goes through each .csv in year folder in: (is this optimal?)
-data/sessions/raw/<year>
-e.g.:
-data/sessions/raw/2025/2025.csv
-data/sessions/raw/2026/2026.csv
+download_races gets called, with a list of urls and the season year as the parameter
 
-These are in the format:
-race_url, race_id, grand prix, date, laps, time
-
-We will go to the first race in the list. 
-We can get the list of all races.
-This will get added to logs (data/logs/seasons.csv)
-
-We will then get a list of all sessions for the weekend.
-
-We will scrape each race_url and go to /race-result
-e.g.:
-https://www.formula1.com/en/results/2026/races/1287/barcelona-catalunya/race-result
-
-for url in urls[]:
-    output_path = x
-    scrape
-    extract_circuit_name
-    extract_sessions
-
+1. 
 """
 
-def from_csv():
-    pass
+from pathlib import Path, PurePosixPath
+import datetime
+from scraping.bones import html_scraper_toolbox as scraper
+from config.config import RAW_DATA_DIR, LOG_DATA_DIR, DB_PATH
+import toolbox.file_management as fm
+import toolbox.extract_race_id as get_id
+from database.management import connection
+from rich.console import Console
+from rich.live import Live
+from rich.console import Group
+from rich.text import Text
+from rich.progress import (
+    Progress, 
+    BarColumn, 
+    TaskProgressColumn, 
+    TimeRemainingColumn, 
+    MofNCompleteColumn
+)
 
-def from_db():
-    pass
 
-def scrape_races(urls:list[dict], year:int):
+def create_path(year: int, url: str, race_name: str) -> Path:
+    # takes url, turns it into /2020/<race_name>
+    path = RAW_DATA_DIR /  str(year) / race_name / "race_results.html"
+    return path
+
+def get_race_name(url: str):
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""SELECT race_name
+                            FROM scrape_race_weekends
+                           WHERE url = ? ;
+                        """,(url, )
+                            )
+        race_name = cursor.fetchone()
+    return race_name[0]
+
+def write_to_db(url: str):
+    # writes the scraper update to the database
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""UPDATE scrape_race_weekends
+                             SET scraped = 1
+                           WHERE url = ?;
+                        """,(url, )
+                            )
+        # could also insert to scrape_sessions for race results, but will do that elsewhere
+    
+def download_races(urls: list[str], year: int):
     for url in urls:
-        pass
-    pass
+        race_name = get_race_name(url)
+        output_path = create_path(year, url, race_name)
+        scraper.html_scraper(url, output_path)
+        write_to_db(url)

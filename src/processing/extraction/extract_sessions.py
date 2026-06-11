@@ -75,18 +75,22 @@ def write_to_db(results: list[dict], url: str, year: int):
                            SET has_sessions = ?
                          WHERE race_id = ? ;
                         """,
-                        (has_sessions, )
+                        (has_sessions, race_id)
                         )
         # update scrape_sessions
         for session in results:
             cursor.execute("""
                             INSERT INTO scrape_sessions (race_id, year, session_type, url)
-                            VALUES (?, ?, ?, ?);
+                            VALUES (?, ?, ?, ?)
+                            ON CONFLICT(race_id) DO UPDATE 
+                            SET year = EXCLUDED.year,
+                                session_type = EXCLUDED.session_type,
+                                url = EXCLUDED.url;
                             """,
                             (race_id,
                             year,
-                            session["session_name"],
-                            session["url"]
+                            session["session_name"], # session type from results
+                            session["url"] # url from results
                             )
                            )
             

@@ -10,6 +10,7 @@ import requests # for testing
 from urllib.parse import urljoin
 from pathlib import Path, PurePosixPath
 from config.config import DB_PATH
+from toolbox import extract_race_id
 
 def _extract_circuit(soup: BeautifulSoup) -> list[dict]:
     # Sets classes found in f1 site. Stupid arbitrary names, let's hope they don't change
@@ -38,7 +39,8 @@ def write_circuit_to_db(results: list[dict], race_id: int):
                             )
     pass 
 
-def main():
+def main(html: BeautifulSoup):
+    _extract_circuit(soup=html)
     pass
 
 def test():

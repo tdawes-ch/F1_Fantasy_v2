@@ -37,8 +37,9 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
     race_id INTEGER PRIMARY KEY, -- 1258
     year INTEGER, -- 2021
     round INTEGER, -- 3
-    race_name TEXT, -- United Kingdome
-    circuit TEXT, -- Silverstone
+    race_name TEXT, -- Spain
+    circuit TEXT, -- Circuit De Catalunya
+    city TEXT, -- Barcelona
     url TEXT UNIQUE, -- www.f1.com
     filepath TEXT UNIQUE, -- path/to/html
     scraped BOOLEAN DEFAULT 0, -- 0

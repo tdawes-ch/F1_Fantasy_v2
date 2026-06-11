@@ -16,14 +16,40 @@ for year in season:
 
 And then we can go through each session. Similar format to this 
 '''
+from pathlib import Path
+from config.config import PROCESSED_DATA_DIR
+from toolbox import file_management as fm
+from config.config import DB_PATH
+from database.management import connection
+from scraping import race_scraper
 
-def _get_urls_from_csv():
-    pass
+def _get_filepath_to_csv(year: int) -> Path:
+    return PROCESSED_DATA_DIR / str(year) / f"{year}.csv"
 
-def _get_urls_from_db():
-    pass
+def _get_urls_from_csv(path_to_csv: Path) -> list[str]:
+    csvfile = fm.load_csv(csv_path=path_to_csv)
+    urls = []
+    for row in csvfile:
+        urls.append(row["url"])
+    return urls
 
-def get_race_data(flag: str='db'):
+def _get_urls_from_db(year: int) -> list[str]:
+    urls = []
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""SELECT url
+                            FROM scrape_race_weekends
+                           WHERE year = ? ;
+                        """, (str(year),)
+        )
+        output = cursor.fetchall()
+ 
+    for row in output:
+        urls.append(row[0])
+
+    return urls
+
+def get_race_data(start_year: int, end_year: int, flag: str='db'):
     """
     This will get all race data. 
     It will loop through each race URL, get the race_id, then:
@@ -35,4 +61,15 @@ def get_race_data(flag: str='db'):
     5. Needs to updated 
     based on the url found in either the csv. 
     """
-    pass
+    for year in range(start_year, end_year+1):
+        # get the urls to pass through
+        if flag.lower() == 'db':
+            urls = _get_urls_from_db(year)
+        elif flag.lower() == 'csv':
+            urls = _get_urls_from_csv(_get_filepath_to_csv(year))
+        else:
+            raise ValueError(f"Unexpected flag value: '{flag}'. Expected 'db' or 'csv'.")
+        
+        # scrape all races
+        race_scraper.download_races(urls, year)
+

@@ -37,3 +37,9 @@ def load_csv(csv_path: Path | str) -> list[dict]:
         for row in reader:
             results.append(row)
     return results
+
+def create_path(dir_path: Path):
+    try:
+        dir_path.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        raise OSError(f"Failed to create directory at {dir_path}. Original error: {e}")

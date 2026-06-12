@@ -24,6 +24,7 @@ from urllib.parse import urljoin
 from pathlib import Path, PurePosixPath
 from toolbox import extract_race_id
 from config.config import DB_PATH
+from database.management import connection
 
 def _extract_items(soup: BeautifulSoup, url: str) -> list[dict]:
     # url must be something like "https://www.formula1.com/en/results/2026/races/1279/australia/race-result" 
@@ -60,12 +61,12 @@ def write_to_db(results: list[dict], url: str, year: int):
     # must write to scrape_race_weekends (has_sessions)
     race_id = extract_race_id.from_url(url) # get race_id
 
-    if results:
+    if results: # isn't empty
         # write 0 to has_sessions
-        has_sessions = 0
+        has_sessions = 1
     else:
         # write 1 to has_sessions
-        has_sessions = 1
+        has_sessions = 0
         
     with connection.get_db(DB_PATH) as conn: # type: ignore
         cursor = conn.cursor()
@@ -82,10 +83,7 @@ def write_to_db(results: list[dict], url: str, year: int):
             cursor.execute("""
                             INSERT INTO scrape_sessions (race_id, year, session_type, url)
                             VALUES (?, ?, ?, ?)
-                            ON CONFLICT(race_id) DO UPDATE 
-                            SET year = EXCLUDED.year,
-                                session_type = EXCLUDED.session_type,
-                                url = EXCLUDED.url;
+                            ON CONFLICT(url) DO NOTHING;
                             """,
                             (race_id,
                             year,
@@ -94,7 +92,7 @@ def write_to_db(results: list[dict], url: str, year: int):
                             )
                            )
             
-def main(html: BeautifulSoup, url: str, year):
+def run(html: BeautifulSoup, url: str, year):
     sessions = _extract_items(soup=html, url=url)
     write_to_db(results=sessions, url=url, year=year)
 
@@ -103,4 +101,4 @@ def test():
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    print(_extract_items(soup,url))
+    run(soup, url, 2026)

@@ -22,8 +22,21 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / os.getenv("DATA_DIR", "data/")
 RAW_DATA_DIR = PROJECT_ROOT / os.getenv("RAW_DATA_DIR", "data/sessions/raw/")
 PROCESSED_DATA_DIR = PROJECT_ROOT / os.getenv("PROCESSED_DATA_DIR", "data/sessions/processed/")
-LOG_DATA_DIR = PROJECT_ROOT / os.getenv("LOG_DATA_DIR", "data/logs/processed/")
+# LOG_DATA_DIR = PROJECT_ROOT / os.getenv("LOG_DATA_DIR", "data/logs/processed/")
 LOG_DIR = PROJECT_ROOT / os.getenv("LOG_DIR", "data/logs/")
+DB_DIR = PROJECT_ROOT / os.getenv("DB_DIR", "database/")
 
 # database paths
 DB_PATH = PROJECT_ROOT / os.getenv("DB_PATH", "database/f1.db")
+
+# option for progress bars
+SHOW_PROGRESS_BARS = os.getenv("SHOW_PROGRESS_BARS", "False").lower() in ("true", "1", "yes")
+
+TRACKED_LOCATIONS = {
+    "DATA_DIR": DATA_DIR,
+    "RAW_DATA_DIR": RAW_DATA_DIR,
+    "PROCESSED_DATA_DIR": PROCESSED_DATA_DIR,
+    "LOG_DIR": LOG_DIR,
+    "DB_DIR": DB_DIR,
+    "DB_PATH": DB_PATH,
+}

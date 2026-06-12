@@ -49,22 +49,6 @@ def _extract_items(soup: BeautifulSoup, base_url: str) -> list[dict]:
         
     return results
 
-
-def extract_season_races(html_path: Path | str, csv_path: Path | str, base_url: str = ""):
-    # takes path to the .html file, output csv path, and a base url
-    # in case string gets passed through
-    html_path = Path(html_path)
-    csv_path = Path(csv_path)
-
-    # does stuff for the csv. Can maybe put this in an if statement if I pass through a flag for whether to save CSVs or not.
-    html = fm.load_html_file(html_path)
-    results = _extract_items(html,base_url)
-    fm.write_to_csv(results, csv_path, ["url", "race"])
-    
-    # does database stuff
-    year = html_path.parent.name
-    write_results_to_db(results, year)
-
 def write_results_to_db(results, year):
     # do the scrape_seasons update
     with connection.get_db(DB_PATH) as conn: # type: ignore
@@ -85,13 +69,23 @@ def write_results_to_db(results, year):
             cursor.execute("""
                             INSERT INTO scrape_race_weekends (race_id, year, round, race_name, url, scraped)
                             VALUES (?, ?, ?, ?, ?, ?)
-                            ON CONFLICT(url) DO UPDATE SET
-                                race_id = EXCLUDED.race_id,
-                                year = EXCLUDED.year,
-                                round = EXCLUDED.round,
-                                race_name = EXCLUDED.race_name,
-                                scraped = EXCLUDED.scraped;
+                            ON CONFLICT(url) DO NOTHING;
                             """,
                             (race_id, year, i, race["race"], url, 0)
                           )
             i+=1
+
+def extract_season_races(html_path: Path | str, csv_path: Path | str, base_url: str = ""):
+    # takes path to the .html file, output csv path, and a base url
+    # in case string gets passed through
+    html_path = Path(html_path)
+    csv_path = Path(csv_path)
+
+    # does stuff for the csv. Can maybe put this in an if statement if I pass through a flag for whether to save CSVs or not.
+    html = fm.load_html_file(html_path)
+    results = _extract_items(html,base_url)
+    fm.write_to_csv(results, csv_path, ["url", "race"])
+    
+    # does database stuff
+    year = html_path.parent.name
+    write_results_to_db(results, year)

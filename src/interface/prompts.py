@@ -6,7 +6,6 @@ console = Console()
 
 def print_welcome_message():
     console.print("======= F1 DATA SCRAPER =======\n", style="blink yellow")
-    pass
 
 def get_valid_years() -> tuple[int, int]:
     """

@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
 
 -- session data
 CREATE TABLE IF NOT EXISTS scrape_sessions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER PRIMARY KEY AUTOINCREMENT,
     race_id INTEGER,
     year INTEGER,
     session_type TEXT,   -- FP1, FP2, FP3, Quali, Race
@@ -87,7 +87,8 @@ CREATE TABLE IF NOT EXISTS race_driver_number_history (
     number INTEGER NOT NULL,
     season INTEGER NOT NULL,
     PRIMARY KEY (driver_id, season),
-    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE
+    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
+    FOREIGN KEY (season) REFERENCES race_seasons (season) 
 );
 
 -- 4. DRIVER CONSTRUCTOR HISTORY
@@ -108,7 +109,7 @@ CREATE TABLE IF NOT EXISTS race_races (
     city TEXT NOT NULL,
     season INTEGER NOT NULL,
     round INTEGER, -- Helps sort the races in chronological calendar order
-    FOREIGN KEY (season) REFERENCES scrape_seasons (year)
+    FOREIGN KEY (season) REFERENCES race_seasons (season)
 );
 
 -- 6. SESSIONS
@@ -135,4 +136,11 @@ CREATE TABLE IF NOT EXISTS race_results (
     FOREIGN KEY (session_id) REFERENCES race_sessions (session_id) ON DELETE CASCADE,
     FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id),
     FOREIGN KEY (constructor_id) REFERENCES race_constructors (constructor_id)
+);
+
+-- 8. SEASONS
+CREATE TABLE IF NOT EXISTS race_seasons (
+    season INTEGER PRIMARY KEY,
+    total_sessions INTEGER NOT NULL,
+    actual_sessions INTEGER NOT NULL
 );

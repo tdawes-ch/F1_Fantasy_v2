@@ -14,5 +14,13 @@ def get_last_scraped(url: str):
         last_scraped = cursor.fetchone()
     return last_scraped[0]
 
-def get_something():
-    pass
+def get_scraped_races(year: int) -> int:
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""SELECT scraped_races
+                            FROM scrape_seasons
+                           WHERE year = ?;
+                        """,(year,)
+                            )
+        scraped_races = cursor.fetchone()
+    return int(scraped_races[0])

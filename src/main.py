@@ -12,6 +12,7 @@ from pipelines import get_all_races, get_race_data, get_session_data, get_all_re
 from interface.progress_manager import get_progress_bar
 from rich.console import Console
 from interface import prompts
+from processing.migration import scrape_to_race
 import sys
 
 console = Console()
@@ -79,7 +80,12 @@ def main():
 
     with get_progress_bar() as session_progress:
         console.print(f"\nGetting and processing individual race sessions:")
-        get_session_data.run(start_year,end_year,session_progress)
+        # get_session_data.run(start_year,end_year,session_progress)
+
+    with get_progress_bar() as migration_progress:
+        console.print(f"\nCopying data from scraped tables to race tables:")
+        scrape_to_race.migrate_all(progress=migration_progress)
+
 
 if __name__ == "__main__":
     try:

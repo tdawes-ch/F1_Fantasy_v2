@@ -22,7 +22,7 @@ from bs4 import BeautifulSoup
 import requests # for testing
 from urllib.parse import urljoin
 from pathlib import Path, PurePosixPath
-from toolbox import extract_race_id
+from toolbox import extract_race_id, database_query
 from config.config import DB_PATH
 from database.management import connection
 
@@ -79,26 +79,57 @@ def write_to_db(results: list[dict], url: str, year: int):
                         (has_sessions, race_id)
                         )
         # update scrape_sessions
+        session_id = 1
         for session in results:
             cursor.execute("""
-                            INSERT INTO scrape_sessions (race_id, year, session_type, url)
-                            VALUES (?, ?, ?, ?)
+                            INSERT INTO scrape_sessions (session_id, race_id, year, session_type, url)
+                            VALUES (?, ?, ?, ?, ?)
                             ON CONFLICT(url) DO NOTHING;
                             """,
-                            (race_id,
+                            (int(f"{race_id}{session_id}"),
+                            race_id,
                             year,
                             session["session_name"], # session type from results
                             session["url"] # url from results
                             )
                            )
-            
+            session_id += 1
+            # if there is the fastest laps session, the weekend is complete! +1 to scraped_races
+            if session["session_name"].strip() == "Fastest Laps":
+                scraped_races = database_query.get_scraped_races(year)
+                cursor.execute("""
+                        UPDATE scrape_seasons
+                           SET scraped_races = ?
+                         WHERE year = ? ;
+                        """,
+                        (scraped_races+1, year)
+                        )
+        # update session_id for race_results
+        session_id += 1
+        cursor.execute("""
+                            UPDATE scrape_sessions
+                            SET session_id = ?
+                            WHERE race_id = ?
+                            AND session_type = "Race Results";
+                            """,
+                            (int(f"{race_id}{session_id}"),
+                             race_id
+                            )
+                           )
+        
 def run(html: BeautifulSoup, url: str, year):
     sessions = _extract_items(soup=html, url=url)
     write_to_db(results=sessions, url=url, year=year)
 
-def test():
-    url = "https://www.formula1.com/en/results/2026/races/1279/australia/race-result"
+def test(flag: str = "output"):
+    url = "https://www.formula1.com/en/results/2026/races/1286/monaco/race-result"
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
+    
+    if flag == "output":
+        output = _extract_items(soup,url)
+        print(output)
+    elif flag == "full":
+        run(soup, url, 2026)
 
-    run(soup, url, 2026)
+test("output")

@@ -5,6 +5,7 @@ If that fails, there's something up with the network
 """
 import requests
 from requests.exceptions import RequestException
+import datetime # potentially some method to calculate time to ping.
 
 def test_outbound_connection(url: str = "https://www.google.com") -> tuple[bool, None | RequestException]:
     try:

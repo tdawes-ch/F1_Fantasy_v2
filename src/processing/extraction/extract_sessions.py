@@ -132,4 +132,4 @@ def test(flag: str = "output"):
     elif flag == "full":
         run(soup, url, 2026)
 
-test("output")
+# test("output")

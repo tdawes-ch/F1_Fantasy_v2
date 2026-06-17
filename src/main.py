@@ -7,58 +7,54 @@ put csv into database ->
 perform calculations for f1 fantasy team.
 """
 from database import init_db
-from config.config import RAW_DATA_DIR, PROCESSED_DATA_DIR
+from config.config import RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_PATH
 from pipelines import get_all_races, get_race_data, get_session_data, get_all_results, setup_checker
 from interface.progress_manager import get_progress_bar
 from rich.console import Console
 from interface import prompts
 from processing.migration import scrape_to_race
 import sys
+from logging_utils.logger_config import setup_logging
 
+# setting up console thing
 console = Console()
+# set up logger file
 
 def main():
-    prompts.print_welcome_message()
+    # setup logs
+    setup_logging()
 
+    prompts.print_welcome_message()
+    
     ## do the setup and checks
+    console.print(f"[b]Running initialisation checks:[/b]")
+    checker = setup_checker.SetupChecker()
     with get_progress_bar() as setup_progress:
         # Set up the database!!
-        db_task = setup_progress.add_task("Initialising database", total=None)
-        init_db.init_db()
+        db_task = setup_progress.add_task("Initialising database...", total=None)
+        init_db.init_db(db_path=DB_PATH)
         setup_progress.remove_task(db_task)
 
-        # Now do checks for the following:
-        """
-            "locations": False,
-            "files": False,
-            "db": False,
-            "random_db_path": False,
-            "network": False
-        """
-        check_task = setup_progress.add_task("Performing check:", total=None)
-        all_checks, all_errors = setup_checker.do_checks(setup_progress, task_id=check_task)
+        # Now do checks
+        setup_task = setup_progress.add_task("Running setup checks...",total=len(checker.checks))
 
-        # if checks failed:
-        if not all(all_checks.values()):
-            # do failed checks stuff
-            if not all_checks["db"]:
-                if len(all_errors)-1 == 0:
-                    setup_progress.update(check_task, description=f"[green]✓ Checks completed.\n[i][b]Note:[/b] Database needs populating.[/i][/green]")
-                else:
-                    setup_progress.update(check_task, description=f"[red]⚠️   Checks completed, [bold red]{len(all_errors)} error(s).[/bold red][/red]")
-            else:
-                setup_progress.update(check_task, description=f"[red]⚠️   Checks completed, [bold red]{len(all_errors)} error(s).[/bold red][/red]")
+        # this gets passed into SetupChecker.run_all()
+        def update_ui(description: str):
+            setup_progress.update(setup_task, description=f"Checking: [yellow]{description}[/yellow]")
+            setup_progress.advance(setup_task)
+
+        results, system_healthy = checker.run_all(on_progress_step=update_ui)
+        all_passed = all(r.passed for r in checker.results)
+
+        if all_passed and system_healthy:
+            setup_progress.update(setup_task, description=f"[green]Checks complete.[/green]")
+        elif not system_healthy:
+            setup_progress.update(setup_task, description=f"[red]Checks complete.[/red]")
         else:
-            setup_progress.update(check_task, description=f"[green]✓ Checks completed[/green]")
-    
-    if all_errors:
-        if all_checks["db"]:
-            console.print(f"\n[u]{len(all_errors)} error(s) found:[/u]")
-            for error in all_errors:
-                console.print(f"- {error}")
-            console.print("[b i red]Please rectify errors before running.[/b i red]")
-            sys.exit(0)
+            setup_progress.update(setup_task, description=f"[yellow]Checks complete.[/yellow]")
 
+    if not all_passed:
+        prompts.checker_summary(results, system_healthy)
             
     base_url = "https://www.formula1.com/en/results/{fyear}/races"
     print()

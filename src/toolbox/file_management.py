@@ -45,7 +45,7 @@ def create_path(dir_path: Path):
     try:
         dir_path.mkdir(parents=True, exist_ok=True)
     except OSError as e:
-        raise OSError(f"Failed to create directory at {dir_path}. Original error: {e}")
+        raise OSError(f"Failed to create directory at {dir_path}. {e}")
     
 def check_location(filepath: Path, flag: Literal['dir', 'file'] = 'dir') -> bool:
     # Returns True if the filepath exists, False otherwise.

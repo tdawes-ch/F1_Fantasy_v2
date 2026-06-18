@@ -27,6 +27,12 @@ from config.config import DB_PATH
 from database.management import connection
 
 def _extract_items(soup: BeautifulSoup, url: str) -> list[dict]:
+    """
+    From HTML data and the url for that data, we:
+    1. Find the list for session information
+    2. Append session info (url to session, session name) to results
+    3. Return a list of all session info
+    """
     # url must be something like "https://www.formula1.com/en/results/2026/races/1279/australia/race-result" 
     # (output from scrape_race_weekends.url in db)
 
@@ -109,18 +115,23 @@ def _write_to_db(results: list[dict], url: str, year: int):
         # update session_id for race_results
         session_id += 1
         cursor.execute("""
-                            UPDATE scrape_sessions
-                            SET session_id = ?
-                            WHERE race_id = ?
-                            AND session_type = "Race Results";
-                            """,
-                            (int(f"{race_id}{session_id}"),
-                             race_id
-                            )
-                           )
+                        UPDATE scrape_sessions
+                           SET session_id = ?
+                         WHERE race_id = ?
+                           AND session_type = "Race Results";
+                       """,
+                       (int(f"{race_id}{session_id}"),
+                        race_id
+                        )
+                      )
 
         
-def run(html: BeautifulSoup, url: str, year):
+def run(html: BeautifulSoup, url: str, year: int):
+    """
+    Takes in html data, the url of that data, and the year.
+    1. Run _extract_items to get a dict list of sessions
+    2. Write the sessions to the database
+    """
     sessions = _extract_items(soup=html, url=url)
     _write_to_db(results=sessions, url=url, year=year)
 

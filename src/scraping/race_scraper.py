@@ -58,12 +58,13 @@ def _write_to_scrape_sessions(url: str, year:int, filepath: Path):
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
-                        INSERT INTO scrape_sessions (race_id, year, session_type, url, filepath, scraped, last_scraped)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO scrape_sessions (session_id, race_id, year, session_type, url, filepath, scraped, last_scraped)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(url) DO UPDATE SET
                             last_scraped = EXCLUDED.last_scraped;
                         """,
-                        (race_id, 
+                        (int(f"{race_id}000"),
+                         race_id, 
                          year,
                          "Race Results",
                          url,

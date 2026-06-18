@@ -14,10 +14,15 @@ def _create_html_path(dir: Path, year: int) -> Path:
     return dir / str(year) / f"{year}.html"
 
 def run(start_year: int, end_year: int, base_url, progress: Progress):
+    """
+    1. Downloads the year pages
+    2. Goes through each year:
+        a. Extracts the list of all races and writes to database
+    """
     num_seasons = end_year + 1 - start_year
     # scrape the years
     season_scraper.download_years(progress, base_url, start_year, end_year)
-
+    
     # setup progress bar
     extraction_task = progress.add_task(f"Processing season: [bold magenta]{start_year}[/bold magenta]", total=num_seasons)
     # extract all race names and stuff from the html

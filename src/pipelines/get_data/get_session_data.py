@@ -78,5 +78,12 @@ def run(start_year:int, end_year:int, progress: Progress):
             session_scraper.download_sessions(urls=session_urls, year=year, race_id=race_id, progress=progress)
             progress.advance(race_task)
 
-        progress.update(race_task, description=f"├ [green][b]{year}:[/b] All sessions collected.[/green]")
+        if year == end_year:
+            pipe = "└"
+        else:
+            pipe = "├"
+
+        progress.update(race_task, description=f"{pipe} [green][b]{year}:[/b] All sessions collected.[/green]")
         progress.advance(year_task)
+    
+    progress.update(year_task,description=f"[green]Data from sessions in {start_year} -> {end_year} extracted[/green]")

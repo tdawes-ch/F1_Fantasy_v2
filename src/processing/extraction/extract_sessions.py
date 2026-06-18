@@ -57,7 +57,7 @@ def _extract_items(soup: BeautifulSoup, url: str) -> list[dict]:
     return results # this is a dictionary of each session and its url
 
 
-def write_to_db(results: list[dict], url: str, year: int):
+def _write_to_db(results: list[dict], url: str, year: int):
     # must write to scrape_race_weekends (has_sessions)
     race_id = extract_race_id.from_url(url) # get race_id
 
@@ -94,16 +94,18 @@ def write_to_db(results: list[dict], url: str, year: int):
                             )
                            )
             session_id += 1
+            """
             # if there is the fastest laps session, the weekend is complete! +1 to scraped_races
             if session["session_name"].strip() == "Fastest Laps":
                 scraped_races = database_query.get_scraped_races(year)
-                cursor.execute("""
+                cursor.execute( # need triple quotes if this gets uncommented
                         UPDATE scrape_seasons
                            SET scraped_races = ?
                          WHERE year = ? ;
-                        """,
+                        ,
                         (scraped_races+1, year)
                         )
+            """
         # update session_id for race_results
         session_id += 1
         cursor.execute("""
@@ -116,10 +118,11 @@ def write_to_db(results: list[dict], url: str, year: int):
                              race_id
                             )
                            )
+
         
 def run(html: BeautifulSoup, url: str, year):
     sessions = _extract_items(soup=html, url=url)
-    write_to_db(results=sessions, url=url, year=year)
+    _write_to_db(results=sessions, url=url, year=year)
 
 def test(flag: str = "output"):
     url = "https://www.formula1.com/en/results/2026/races/1286/monaco/race-result"

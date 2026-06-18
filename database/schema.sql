@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
 
 -- session data
 CREATE TABLE IF NOT EXISTS scrape_sessions (
-    session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER PRIMARY KEY,
     race_id INTEGER,
     year INTEGER,
     session_type TEXT,   -- FP1, FP2, FP3, Quali, Race
@@ -105,8 +105,8 @@ CREATE TABLE IF NOT EXISTS race_driver_constructor_history (
 CREATE TABLE IF NOT EXISTS race_races (
     race_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    circuit TEXT NOT NULL,
-    city TEXT NOT NULL,
+    circuit TEXT,
+    city TEXT,
     season INTEGER NOT NULL,
     round INTEGER, -- Helps sort the races in chronological calendar order
     FOREIGN KEY (season) REFERENCES race_seasons (season)

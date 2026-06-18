@@ -97,10 +97,9 @@ def main():
     # console.print(f"\nPreparing to scrape {num_seasons} season(s)...\n")
     # get races from each year
     with get_progress_bar() as year_progress:
-        console.print(f"[b]Getting and processing the {num_seasons} season overview page(s):[/b]")
+        console.print(f"[b]\nGetting and processing the {num_seasons} season overview page(s):[/b]")
         get_all_races.run(start_year,end_year,base_url,year_progress)
 
-    
     # get the race html and extract info
     with get_progress_bar() as race_progress:
         console.print(f"[b]\nGetting and processing individual races:[/b]")
@@ -108,7 +107,7 @@ def main():
 
     with get_progress_bar() as session_progress:
         console.print(f"[b]\nGetting and processing individual race sessions:[/b]")
-        # get_session_data.run(start_year,end_year,session_progress)
+        get_session_data.run(start_year, end_year, session_progress)
 
     with get_progress_bar() as migration_progress:
         console.print(f"[b]\nCopying data from scraped tables to race tables:[/b]")

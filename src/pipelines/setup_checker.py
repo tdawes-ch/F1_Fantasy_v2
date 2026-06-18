@@ -46,6 +46,7 @@ class SetupChecker:
         # used internally for tracking locations ans files:
         self._missing_locations = []
         self._missing_files = []
+        self._db_tables = []
 
     def run_all(self, on_progress_step: Callable[[str], None]) -> Tuple[List[CheckResult], bool]:
         # takes in the function to update the CLI (on_progress_step) 
@@ -127,7 +128,7 @@ class SetupChecker:
                   FROM sqlite_master 
                  WHERE type='table' AND name NOT LIKE 'sqlite_%';
             """)
-            # Store tables on the class instance so the data check can reuse them
+            # Store tables on the class instance so the data check can reuse 
             self._db_tables = cursor.fetchall()
 
         if not self._db_tables:
@@ -135,14 +136,14 @@ class SetupChecker:
         
     def _run_db_data_check(self):
         # ("db_data", "Database Data", False, self._run_db_data_check)
-        if not hasattr(self, '_db_tables') or not self._db_tables:
+        if not self._db_tables:
             raise ValueError("Cannot verify data because database tables are missing.")
         
         has_data = False
         with connection.get_db(db_path=DB_PATH) as conn:
             cursor = conn.cursor()
-            for table_name, _ in self._db_tables:
-                cursor.execute(f"SELECT 1 FROM [{table_name}] LIMIT 1;")
+            for table_name in self._db_tables:
+                cursor.execute(f"SELECT 1 FROM [{table_name[0]}] LIMIT 1;")
                 if cursor.fetchone() is not None:
                     has_data = True
                     break # found data! No need to check other tables
@@ -183,7 +184,7 @@ class SetupChecker:
         if not connection_ok:
             raise connection_error or Exception(f"Connection test failed for '{url}'")
         
-    def did_check_pass(self, check_name: str) -> bool:
+    def did_check_pass(self, check_name: str) -> Tuple[bool, Exception | None]:
         """
         Queries the status of a specific check by its name ID.
         
@@ -197,8 +198,8 @@ class SetupChecker:
         # "locations", "files", "db", "db_data", "random_db_path", "network"
         for result in self.results:
             if result.name == check_name:
-                return result.passed
-        return False
+                return result.passed, result.error
+        return False, None
 
 
 #######################################

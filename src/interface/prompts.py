@@ -7,7 +7,7 @@ from rich.prompt import IntPrompt
 from config.config import DB_PATH, LOG_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_DIR  # Assuming these import paths
 
 def print_welcome_message():
-    print("[b i yellow]======= F1 DATA SCRAPER =======[/b i yellow]\n")
+    print("[b i yellow]========== F1 DATA SCRAPER ==========[/b i yellow]\n")
     _print_small_info()
 
 # more info on paths and stuff
@@ -87,36 +87,51 @@ def get_valid_years() -> tuple[int, int]:
     Asks the user for start and end years with strict validation boundaries.
     """
     CURRENT_YEAR = int(datetime.now().strftime("%Y"))  # Setting current calendar context
+    print("[b]Let's get scraping![/b]")
     
     while True:
         # IntPrompt automatically forces the user to input a valid integer
-        start_year = IntPrompt.ask(f"Enter Start Year (1950 -> {CURRENT_YEAR})")
+        start_year = IntPrompt.ask(f"  Enter Start Year (1950 -> {CURRENT_YEAR})")
         
         if start_year < 1950 or start_year > CURRENT_YEAR:
-            print(f"[red]❌ Error: Formula 1 started in 1950. Please choose between 1950 and {CURRENT_YEAR}.[/red]")
+            print(f"  [red]❌ Error: Formula 1 started in 1950. Please choose between 1950 and {CURRENT_YEAR}.[/red]")
             continue
             
-        end_year = IntPrompt.ask(f"Enter End Year ({start_year} -> {CURRENT_YEAR})")
+        end_year = IntPrompt.ask(f"  Enter End Year ({start_year} -> {CURRENT_YEAR})")
         
         if end_year < 1950 or end_year > CURRENT_YEAR:
-            print(f"[red]❌ Error: End year must be between 1950 and {CURRENT_YEAR}.[/red]")
+            print(f"  [red]❌ Error: End year must be between 1950 and {CURRENT_YEAR}.[/red]")
             continue
             
         # Cross-validation: End year must be greater than or equal to start year
         if start_year > end_year:
-            print(f"[bold red]❌ Validation Error:[/bold red] Start year ({start_year}) cannot be after End year ({end_year})!")
+            print(f"  [bold red]❌ Validation Error:[/bold red] Start year ({start_year}) cannot be after End year ({end_year})!")
             continue
             
         # If all checks pass, break the validation loop
         return start_year, end_year
     
 def checker_summary(results: list, system_healthy: bool):
-    print("\n[i b] ollowing checks have failed:[/i b]")
-    if system_healthy:
-        colour = "yellow"
-        print("[green][/green]")
+    print("\n  [b]The following checks have failed:[/b]")
+    
+
+    for result in results:
+        if result.critical:
+            colour = "red"
+        else:
+            colour = "yellow"
+        if not result.passed:
+            print(f"  - [{colour}][b]{result.description}:[/b] '{result.error}'[/{colour}]")
+
+def network_status(network_results: dict):
+    if network_results["error"] is None:
+        print(f"   [green]Results:[/green]")
+        print(f"    ├ [i yellow]{round(network_results["bytes_downloaded"]/ 1024 / 1024, 2)} MB [/i yellow]downloaded in [green]{round(network_results["duration_seconds"],2)}[/green] seconds.")
+        print(f"    └─ Network speed: [bold cyan]{network_results["mbps"]}[/bold cyan] mbps / [cyan]{network_results["mb_per_sec"]}[/cyan] MB/s")
     else:
-        colour = "red"
-        print("BAD")
-        print(results)
-        print(system_healthy)
+        print(f"[red]Speedtest failed: {network_results["error"]}[/red]")
+
+def announce_offline_mode(error: Exception | None):
+    print(f"[b i]Network check has failed. Offline mode only.[/b i]")
+    if error is not None:
+        print(f"Network error: [dim]{error}[/dim]")

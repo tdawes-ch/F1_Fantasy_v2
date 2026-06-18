@@ -46,15 +46,13 @@ def _get_race_name(url: str):
     return race_name[0]
 
 
-def _write_to_scrape_sessions(url: str, year:int, filepath: Path):
-    race_id = extract_race_id.from_db(data=url, flag="url")
+def _write_to_scrape_sessions(url: str, year:int, race_id: int, filepath: Path):
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
-                        INSERT INTO scrape_sessions (race_id, year, session_type, url, filepath, scraped, last_scraped)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                        ON CONFLICT(url) DO UPDATE SET
-                            last_scraped = EXCLUDED.last_scraped;
+                        UPDATE scrape_sessions
+                        SET filepath = ?
+                        WHERE url = ?
                         """,
                         (race_id, 
                          year,
@@ -66,11 +64,24 @@ def _write_to_scrape_sessions(url: str, year:int, filepath: Path):
                             )
                         )
         
-def _write_to_scrape_seasons():
+def _write_to_scrape_seasons(year: int):
     # update scraped sessions value
     pass
+
+def _update_scraped_sessions(year:int):
+    ############ work on this
+    with connection.get_db(DB_PATH) as conn: # type: ignore
+        cursor = conn.cursor()
+        # update scrape_race_weekends
+        cursor.execute("""
+                        UPDATE scrape_seasons
+                           SET scraped_races = (SELECT COUNT(*)
+                                                  FROM scrape_race_weekends
+                                                 WHERE has_sessions
+                        """
+        )
     
-def download_sessions(urls: list[str], year: int, progress: Progress):
+def download_sessions(urls: list[str], year: int, race_id: int, progress: Progress):
     ## progresss bar
     download_task = progress.add_task(f"  ↳ Downloading URL: ", total=len(urls))
 

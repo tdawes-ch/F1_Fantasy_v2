@@ -47,7 +47,8 @@ def _get_session_urls(race_id: int) -> list[str]:
             """
             SELECT url, session_type
               FROM scrape_sessions
-             WHERE race_id = ? ;
+             WHERE race_id = ? 
+               AND session_type <> 'Race Results';
             """,
             (race_id,)
         )

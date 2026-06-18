@@ -1,5 +1,4 @@
 '''
-Stuck on the pipeline for this a bit :/
 We will loop through each season e.g. 2020. Following is pseudocode:
 
 for year in season:

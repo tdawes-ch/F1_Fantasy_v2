@@ -29,75 +29,85 @@ from database.management import connection
 from rich.progress import Progress
 
 
-def _create_path(year: int, url: str, race_name: str, file_name: str) -> Path:
-    # takes url, turns it into /2020/<race_name>/
+def _create_path(year: int, race_name: str, file_name: str) -> Path:
+    """
+    takes url, turns it into /2020/<race_name>/<session_type>.html
+    """
     path = RAW_DATA_DIR /  str(year) / race_name / f"{file_name}.html"
     return path
+
+def _create_filename(url: str) -> str:
+    """
+    takes url, turns it into .html relative to the session type
+    e.g. Practice 1 -> practice_1
+    """
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""
+                        SELECT session_type
+                          FROM scrape_sessions
+                         WHERE url = ? ;
+                       """,
+                       (url,
+                       )
+                      )
+        output = cursor.fetchone()[0].strip() # bad idea to not strip the output lol
+    return f"{"_".join(session_name for session_name in output.lower().split(" "))}.html"
 
 def _get_race_name(url: str):
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
-        cursor.execute("""SELECT race_name
-                            FROM scrape_race_weekends
-                           WHERE url = ? ;
-                        """,(url, )
+        cursor.execute("""
+                        SELECT srw.race_name
+                          FROM scrape_race_weekends srw
+                          LEFT JOIN scrape_sessions ss ON srw.race_id = ss.race_id
+                         WHERE ss.url = ?;
+                        """,
+                        (url, )
                             )
         race_name = cursor.fetchone()
     return race_name[0]
 
-
-def _write_to_scrape_sessions(url: str, year:int, race_id: int, filepath: Path):
+def _write_to_scrape_sessions(url: str, filepath: Path):
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
                         UPDATE scrape_sessions
-                        SET filepath = ?
-                        WHERE url = ?
+                           SET filepath = ?,
+                               scraped = 1,
+                               last_scraped = ?
+                        WHERE url = ? ;
                         """,
-                        (race_id, 
-                         year,
-                         "Race Results",
-                         url,
-                         str(filepath),
-                         1,
-                         database_query.get_last_scraped(url)
+                        (str(filepath), 
+                         database_query.get_last_scraped(url),
+                         url
                             )
                         )
-        
-def _write_to_scrape_seasons(year: int):
-    # update scraped sessions value
-    pass
 
-def _update_scraped_sessions(year:int):
-    ############ work on this
-    with connection.get_db(DB_PATH) as conn: # type: ignore
-        cursor = conn.cursor()
-        # update scrape_race_weekends
-        cursor.execute("""
-                        UPDATE scrape_seasons
-                           SET scraped_races = (SELECT COUNT(*)
-                                                  FROM scrape_race_weekends
-                                                 WHERE has_sessions
-                        """
-        )
-    
 def download_sessions(urls: list[str], year: int, race_id: int, progress: Progress):
+    """
+    Args:
+    - urls: a list of session urls for a set race weekend
+    - year: the year being processed
+    - race_id: the race ID of the race weekend
+    - progress: the progress bar
+    """
     ## progresss bar
     download_task = progress.add_task(f"  ↳ Downloading URL: ", total=len(urls))
 
     if urls:
-        _write_to_scrape_seasons(year) # sets has_races to 1
-        for url in urls:
-            short_url = f"f1.com/.../{url.split('/races/')[-1]}"
+        for session_url in urls: # essentially, for session in race
+            session_filename = _create_filename(url=session_url)
+            short_url = f"f1.com/.../{session_url.split('/races/')[-1]}"
             progress.update(download_task, description=f"  ↳ Downloading URL: [grey11]{short_url:<50}[/grey11]")
 
-            race_name = _get_race_name(url)
-            output_path = _create_path(year, url, race_name, file_name)
-            scraper.html_scraper(url, output_path)
-            _write_to_scrape_weekends(url, output_path)
+            race_name = _get_race_name(url=session_url) # get race name
+            output_path = _create_path(year=year, race_name=race_name, file_name=session_filename) # create output path for .html
+            scraper.html_scraper(session_url, output_path) # send url to be scraped
 
+            _write_to_scrape_sessions(session_url, output_path) # write to scrape sessions table
             progress.advance(download_task)
-            
+
         progress.remove_task(download_task)
     else:
         return

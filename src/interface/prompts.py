@@ -132,6 +132,8 @@ def network_status(network_results: dict):
         print(f"[red]Speedtest failed: {network_results["error"]}[/red]")
 
 def announce_offline_mode(error: Exception | None):
-    print(f"[b i]Network check has failed. Offline mode only.[/b i]")
+    print(f"[b i]\nNetwork check has failed. Offline mode only.[/b i]")
     if error is not None:
         print(f"Network error: [dim]{error}[/dim]")
+    else:
+        print(f"Network error: [dim]unknown[/dim]")

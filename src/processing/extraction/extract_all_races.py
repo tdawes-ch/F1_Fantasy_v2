@@ -49,7 +49,7 @@ def _extract_items(soup: BeautifulSoup, base_url: str) -> list[dict]:
         
     return results
 
-def write_results_to_db(results, year):
+def _write_results_to_db(results, year):
     # do the scrape_seasons update
     with connection.get_db(DB_PATH) as conn: # type: ignore
         cursor = conn.cursor()
@@ -76,6 +76,15 @@ def write_results_to_db(results, year):
             i+=1
 
 def extract_season_races(html_path: Path | str, csv_path: Path | str, base_url: str = ""):
+    """
+    From the path to the HTML path and an output CSV path, this function:
+    1. Loads HTML data,
+    2. Extracts race name (e.g. Monaco) and its respective URL
+    3. Writes this to the CSV output path
+    4. Writes this to the database (scrape_race_weekends & scrape_seasons):
+        - scrape_race_weekends: race_id, year, round, race_name, url, scraped
+        - scrape_seasons: updates expected_races value
+    """
     # takes path to the .html file, output csv path, and a base url
     # in case string gets passed through
     html_path = Path(html_path)
@@ -88,4 +97,4 @@ def extract_season_races(html_path: Path | str, csv_path: Path | str, base_url: 
     
     # does database stuff
     year = html_path.parent.name
-    write_results_to_db(results, year)
+    _write_results_to_db(results, year)

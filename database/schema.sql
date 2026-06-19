@@ -73,17 +73,28 @@ CREATE TABLE IF NOT EXISTS race_constructors (
 
 -- 2. DRIVERS
 CREATE TABLE IF NOT EXISTS race_drivers (
-    driver_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    driver_id TEXT PRIMARY KEY AUTOINCREMENT,
     forename TEXT NOT NULL,
     surname TEXT NOT NULL,
     dob DATE,
     nationality TEXT,
-    code TEXT UNIQUE -- e.g., 'HAM', 'VER', 'LEC'
+    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
+    FOREIGN KEY (season) REFERENCES race_seasons (season) 
+);
+
+-- 2.a Driver code history (verstappen: VES -> VER when vergne left)
+CREATE TABLE IF NOT EXISTS race_driver_code_history (
+    driver_id TEXT,
+    driver_code TEXT, -- VER, HAM, LEC
+    season INTEGER,
+    PRIMARY KEY (driver_id, season),
+    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
+    FOREIGN KEY (season) REFERENCES race_seasons (season);
 );
 
 -- 3. DRIVER NUMBER HISTORY
 CREATE TABLE IF NOT EXISTS race_driver_number_history (
-    driver_id INTEGER,
+    driver_id TEXT,
     number INTEGER NOT NULL,
     season INTEGER NOT NULL,
     PRIMARY KEY (driver_id, season),
@@ -93,7 +104,7 @@ CREATE TABLE IF NOT EXISTS race_driver_number_history (
 
 -- 4. DRIVER CONSTRUCTOR HISTORY
 CREATE TABLE IF NOT EXISTS race_driver_constructor_history (
-    driver_id INTEGER,
+    driver_id TEXT,
     constructor_id INTEGER,
     season INTEGER NOT NULL,
     PRIMARY KEY (driver_id, constructor_id, season),
@@ -125,7 +136,7 @@ CREATE TABLE IF NOT EXISTS race_sessions (
 CREATE TABLE IF NOT EXISTS race_results (
     result_id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id INTEGER NOT NULL,
-    driver_id INTEGER NOT NULL,
+    driver_id TEXT NOT NULL,
     constructor_id INTEGER NOT NULL, -- Captured at the time of the race
     position INTEGER, -- Can be NULL if DNF before classification
     points REAL DEFAULT 0.0, -- REAL handles half-points (e.g., Spa 2021)

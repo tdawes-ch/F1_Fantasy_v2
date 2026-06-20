@@ -12,6 +12,16 @@ becomes
 """
 
 def from_url(url: str) -> int | None:
+    """Takes in a URL and returns the race ID from the URL e.g.:
+    - Input: https://www.formula1.com/en/results/2026/races/1279/australia/practice/1
+    - Output: Race ID: 1279
+
+    Args:
+        url (str): The URL to be processed
+
+    Returns:
+        int | None: The race ID value
+    """
     path = PurePosixPath(urlparse(url).path)
     try:
         races_index = path.parts.index('races')
@@ -23,6 +33,22 @@ def from_url(url: str) -> int | None:
         return race_id
     
 def from_db(data: str | list[int], flag:str) -> int:
+    """Finds the race ID from the database from either a URL or a combination of round and year.
+
+    Args:
+        data (str | list[int]): The data to be processed. Depends on the flag
+        flag (str): The method to get the race ID (from url or year & round)
+            e.g.: "year,round"
+                  "url"
+
+    Raises:
+        ValueError: Incorrect flag
+        ValueError: Incorrect list passed for round,year
+        ValueError: Unknown error for data and flag
+
+    Returns:
+        int: the race ID
+    """    
     valid_flag = ("year,round", "url")
     flag = flag.lower().strip()
 

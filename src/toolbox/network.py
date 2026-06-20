@@ -9,6 +9,14 @@ import datetime # potentially some method to calculate time to ping.
 from pprint import pprint
 
 def test_outbound_connection(url: str = "https://www.google.com") -> tuple[bool, None | RequestException]:
+    """A quick function that pings a URL (default google.com) using the requests module.
+
+    Args:
+        url (str, optional): The URL to be pinged, defaults to "https://www.google.com".
+
+    Returns:
+        tuple[bool, None | RequestException]: Returns True/False and an error if False (None if True)
+    """
     try:
         r = requests.get(url)
         return True, None
@@ -17,15 +25,23 @@ def test_outbound_connection(url: str = "https://www.google.com") -> tuple[bool,
     
 import time
 import requests
-from typing import Dict, Any
 
 def measure_download_speed(
         test_url: str = "https://speed.cloudflare.com/__down?bytes=10000000" # 10MB stream
-        ) -> Dict[str, Any]:
-    """
-    Measures the network download speed to a specific target URL.
-    Returns raw data without any console print outputs.
-    """
+        ) -> dict[str, float | int | bool | str | None]:
+    """Measures the network download speed to a specific target URL.
+
+    Returns:
+        dict: A dictionary of results e.g.:
+            {
+                "success": True,
+                "duration_seconds": 1.042,
+                "bytes_downloaded": 102340,
+                "mbps": 10.43,       
+                "mb_per_sec": 80.12 
+                "error": None
+            }
+    """    
     try:
         start_time = time.perf_counter()
         
@@ -66,7 +82,8 @@ def measure_download_speed(
             "error": str(e)
         }
     
-def avg_download_speed(url: str = "https://speed.cloudflare.com/__down?bytes=10000000", attempts: int = 2):
+def avg_download_speed(url: str = "https://speed.cloudflare.com/__down?bytes=10000000", 
+                       attempts: int = 2) -> dict[str, float | int | bool | str | None]:
     """
     Runs 'attempts' number of the 'measure_download_speed()' function and
     calculates the average.
@@ -76,14 +93,15 @@ def avg_download_speed(url: str = "https://speed.cloudflare.com/__down?bytes=100
 
     Returns:
       Returns the same format as measure_download_speed(), but as an average
-      return {
-            "success": True,
-            "duration_seconds": round(duration, 3),
-            "bytes_downloaded": total_bytes,
-            "mbps": round(megabits_per_second, 2),       # Standard network speed unit
-            "mb_per_sec": round(megabytes_per_second, 2), # Real-world disk/file speed unit
-            "error": None
-        }
+      e.g.:
+            {
+                "success": True,
+                "duration_seconds": 1.042,
+                "bytes_downloaded": 102340,
+                "mbps": 10.43,       
+                "mb_per_sec": 80.12 
+                "error": None
+            }
     """
     results = []
     for i in range(attempts):
@@ -121,10 +139,19 @@ def avg_download_speed(url: str = "https://speed.cloudflare.com/__down?bytes=100
 
 import speedtest
 import time
-def run_speedtest():
-    """
-    This is another way of checking speedtest if the other fails for too many runs.
-    Takes 0 arguments.
+def run_speedtest() -> dict[str, float | int | bool | str | None]:
+    """Another way of checking speedtest if the other fails after too many runs.
+
+    Returns:
+        dict: A summary of the speedtest results e.g.:
+            {
+                "success": True,
+                "duration_seconds": 1.042,
+                "bytes_downloaded": 102340,
+                "mbps": 10.43,       
+                "mb_per_sec": 80.12 
+                "error": None
+            }
     """
     try:
         # Initialize the Speedtest client

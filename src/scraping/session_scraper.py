@@ -30,8 +30,17 @@ from rich.progress import Progress
 
 
 def _create_path(year: int, race_name: str, file_name: str) -> Path:
-    """
-    takes url, turns it into /2020/<race_name>/<session_type>.html
+    """An internal function that uses the year, race name, and session type (converted into a filename) and turns it into:
+    - raw_data_dir/year/race_name/filename.html
+    - raw_data_dir/2020/Monaco/race_results.html
+
+    Args:
+        year (int): The year that the session is in e.g. 2020
+        race_name (str): The associated race name e.g. Monaco
+        file_name (str): the session name, but converted into a filename e.g. race_results
+
+    Returns:
+        Path: The full path for the HTML to be saved into
     """
     path = RAW_DATA_DIR /  str(year) / race_name / f"{file_name}.html"
     return path

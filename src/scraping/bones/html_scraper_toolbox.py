@@ -18,12 +18,24 @@ import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 from database.management import connection
-from config.config import DB_PATH
+from config.config import DB_PATH, RAW_DATA_DIR
 from scraping.bones.errors import (ScraperError, InvalidUrlError, FetchError, FileWriteError, FilepathError)
 
-
 def validate_url(url: str) -> str:
-    # uses validators and urllib.parse.urlparse to validate
+    """Checks whether the URL is a valid URL or not. Use:
+    - checked_url = validate_url(url=url)
+
+    Args:
+        url (str): The URL to be checked
+
+    Raises:
+        InvalidUrlError: URL is missing scheme (http/https)
+        InvalidUrlError: URL is missing domain
+        InvalidUrlError: Invalid URL formats
+
+    Returns:
+        str: the same URL
+    """
     if not validators.url(url):
         parsed = urlparse(url)
         error_type = "InvalidUrlError"
@@ -38,18 +50,46 @@ def validate_url(url: str) -> str:
 
 
 def validate_output(filepath) -> Path:
+    """Makes sure that the output path is correct (contains a filename and the file is .HTML)
+
+    Args:
+        filepath (_type_): Path to the file
+
+    Raises:
+        FilepathError: Output path must include a filename"
+        FilepathError: Unsupported output file type (not .html)
+
+    Returns:
+        Path: _description_
+    """
     path = Path(filepath)
 
     if not path.name:
         raise FilepathError("Output path must include a filename")
 
     if path.suffix.lower() not in {".html"}:
-        raise FilepathError("Unsupported output file type")
+        raise FilepathError("Unsupported output file type (not .html")
 
     return path
 
 
 def fetch_url(url: str) -> str:
+    """Uses the requests module to get the HTML text from the URL
+
+    Args:
+        url (str): The URL to be pinged for data
+
+    Raises:
+        FetchError: Invalid URL format (missing schema like http:// or https://)
+        FetchError: Invalid URL provided
+        TimeoutError: Request timed out
+        ConnectionError: Failed to connect to the server
+        RuntimeError: HTTP error
+        RuntimeError: Catches unexpected errors
+
+    Returns:
+        str: Returns pure HTML text
+    """
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -76,7 +116,13 @@ def fetch_url(url: str) -> str:
         raise RuntimeError(f"Unexpected request error: {e}")
 
 
-def save_html(html, output_path):
+def save_html(html: str, output_path: Path = RAW_DATA_DIR):
+    """Saves the HTML text to a .html file defined by 'output_path'
+
+    Args:
+        html (str): Raw HTML string of text (usually from html.prettify() )
+        output_path (Path, optional): _description_. Defaults to RAW_DATA_DIR (the raw data directory defined in .env).
+    """
     path = validate_output(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -86,6 +132,12 @@ def save_html(html, output_path):
     tmp_path.replace(path)
 
 def log_to_db(url: str, output_path: Path):
+    """All scraped URLs will be logged in the 'scrape_log' table. It will log the URL and the path to the associated HTML file.
+
+    Args:
+        url (str): The URL getting scraped
+        output_path (Path): The output path of the HTML
+    """    
     with connection.get_db(DB_PATH) as conn: # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
@@ -96,8 +148,14 @@ def log_to_db(url: str, output_path: Path):
                         )
 
 def html_scraper(url: str, output_path: Path):
-    validate_url(url) # is a valid url 
-    html = BeautifulSoup(fetch_url(url),"html.parser")
+    """Given a URL and a filepath, this function will download the HTML data, prettify it, save it, and log the action to the database.
+
+    Args:
+        url (str): URL to be scraped
+        output_path (Path): The path for the HTML file that the scraped data will be saved into
+    """
+    checked_url = validate_url(url) # is a valid url 
+    html = BeautifulSoup(fetch_url(checked_url),"html.parser")
     prettified_html = html.prettify()
     save_html(prettified_html, output_path)
-    log_to_db(url, output_path)
+    log_to_db(checked_url, output_path)

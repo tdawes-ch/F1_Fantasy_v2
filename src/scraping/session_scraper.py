@@ -137,4 +137,5 @@ def download_sessions(urls: list[str], year: int, race_id: int, progress: Progre
 
         progress.remove_task(download_task)
     else:
+        progress.remove_task(download_task)
         return

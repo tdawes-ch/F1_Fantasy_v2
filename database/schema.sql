@@ -77,18 +77,17 @@ CREATE TABLE IF NOT EXISTS race_drivers (
     surname TEXT NOT NULL, -- Hamilton
     dob DATE, -- 28/10/2000
     nationality TEXT, -- British
-    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
-    FOREIGN KEY (season) REFERENCES race_seasons (season) 
+    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE
 );
 
 -- 2.a Driver code history (verstappen: VES -> VER when vergne left)
 CREATE TABLE IF NOT EXISTS race_driver_code_history (
     driver_id TEXT, -- max_verstappen, vos_verstappen
-    driver_code TEXT, -- VER, HAM, LEC
+    code TEXT, -- VER, HAM, LEC
     season INTEGER,
     PRIMARY KEY (driver_id, season),
     FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
-    FOREIGN KEY (season) REFERENCES race_seasons (season);
+    FOREIGN KEY (season) REFERENCES race_seasons (season)
 );
 
 -- 3. DRIVER NUMBER HISTORY

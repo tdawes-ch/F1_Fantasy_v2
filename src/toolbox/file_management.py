@@ -111,3 +111,18 @@ def check_location(filepath: Path, flag: Literal['dir', 'file'] = 'dir') -> bool
         return Path(filepath).is_file()
     else:
         raise ValueError(f"Incorrect flag passed to check_path: {flag}")
+    
+def get_headers(list_dict:list[dict]) -> list[str]:
+    """Gets a list of headers from a list of dictionaries, used for CSV processing
+
+    Args:
+        list_dict (list[dict]): the data
+
+    Returns:
+        list[str]: the headers
+    """
+    if list_dict:
+        headers = list(list_dict[0].keys())
+        return headers
+    else:
+        return []

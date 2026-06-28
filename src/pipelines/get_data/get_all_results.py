@@ -79,7 +79,9 @@ def run(start_year: int, end_year: int, progress: Progress):
                                     session_name=session["session_name"],
                                     results=session_results,
                                     url=session["url"])
-                
+                progress.advance(race_task)
+            progress.advance(year_task)
+
 def test():
     with get_progress_bar() as migration_progress:
         run(2026,2026,migration_progress)

@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS scrape_sessions (
 -- f1 data tables
 -- 1. CONSTRUCTORS
 CREATE TABLE IF NOT EXISTS race_constructors (
-    constructor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    constructor_id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE -- Mercedes
 );
 

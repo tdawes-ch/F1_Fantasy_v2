@@ -67,24 +67,23 @@ CREATE TABLE IF NOT EXISTS scrape_sessions (
 -- 1. CONSTRUCTORS
 CREATE TABLE IF NOT EXISTS race_constructors (
     constructor_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    nationality TEXT
+    name TEXT NOT NULL UNIQUE -- Mercedes
 );
 
 -- 2. DRIVERS
 CREATE TABLE IF NOT EXISTS race_drivers (
-    driver_id TEXT PRIMARY KEY AUTOINCREMENT,
-    forename TEXT NOT NULL,
-    surname TEXT NOT NULL,
-    dob DATE,
-    nationality TEXT,
+    driver_id TEXT PRIMARY KEY, -- lewis_hamilton
+    forename TEXT NOT NULL, -- Lewis
+    surname TEXT NOT NULL, -- Hamilton
+    dob DATE, -- 28/10/2000
+    nationality TEXT, -- British
     FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
     FOREIGN KEY (season) REFERENCES race_seasons (season) 
 );
 
 -- 2.a Driver code history (verstappen: VES -> VER when vergne left)
 CREATE TABLE IF NOT EXISTS race_driver_code_history (
-    driver_id TEXT,
+    driver_id TEXT, -- max_verstappen, vos_verstappen
     driver_code TEXT, -- VER, HAM, LEC
     season INTEGER,
     PRIMARY KEY (driver_id, season),
@@ -94,9 +93,9 @@ CREATE TABLE IF NOT EXISTS race_driver_code_history (
 
 -- 3. DRIVER NUMBER HISTORY
 CREATE TABLE IF NOT EXISTS race_driver_number_history (
-    driver_id TEXT,
-    number INTEGER NOT NULL,
-    season INTEGER NOT NULL,
+    driver_id TEXT, -- max_verstappen, jos_verstappen
+    number INTEGER NOT NULL, -- 33
+    season INTEGER NOT NULL, -- 2021
     PRIMARY KEY (driver_id, season),
     FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
     FOREIGN KEY (season) REFERENCES race_seasons (season) 

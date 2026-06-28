@@ -105,12 +105,21 @@ def _driver_processing(results: list[dict], year: int):
         if len(driver) != 3:
             raise ValueError(f"Expected three items under driver (fname, lname, code), got {len(driver)}: {driver}")
         driver_id = f"{driver[0]}_{driver[1]}".lower()
+        # driver db additions
         _insert_driver_details(driver_id, fname=driver[0], lname=driver[1])
         _insert_driver_number(driver_id, number, year)
         _insert_driver_code(driver_id, driver_code=driver[2], year=year)
         constructor_id = "_".join(name for name in team.lower().split(" "))
+        # constructor db additions
         _insert_constructor_details(constructor_id, team)
         _insert_driver_constructor_link(driver_id, constructor_id, year)
+
+def _results_processing(year: int, 
+                        race_id: int, 
+                        session_name: str, 
+                        results: list[dict], 
+                        url: str):
+    print(results)
 
 def run(year: int, 
         race_id: int, 
@@ -119,3 +128,4 @@ def run(year: int,
         url: str): 
     #pp(results)
     _driver_processing(results,year)
+    _results_processing(year, race_id, session_name, results, url)

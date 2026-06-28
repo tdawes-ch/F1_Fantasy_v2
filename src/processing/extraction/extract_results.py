@@ -39,14 +39,25 @@ def get_results(soup: BeautifulSoup) -> list[dict] | None:
         else:
             row_values = []
             for column in columns:
-                spans = column.find_all("span") # there is a span in driver name as there is FNAME, LNAME, SHORT (Lewis, Hamilton, HAM)
-                if not spans or len(spans) <= 1: # constructor data is held in a span, but just one span. Ignore it if it's just the one
-                    row_values.append(column.get_text(strip=True))
-                elif:
-                    
-                else:
-                    row_values.append([span.get_text(strip=True) for span in spans[2:]])
-    
+                # there is a span in driver name as there is FNAME, LNAME, SHORT (Lewis, Hamilton, HAM)
+                # there is also a span in constructors in newer sessions as there is the team logo
+
+                spans = column.find_all("span", recursive=False) # first get all spans 
+                if not spans: # if there aren't any spans, just add whatever data there is
+                    row_values.append(column.get_text(strip=True)) # just add the text
+                else: # if there are spans, check them
+                    # row_values.append([data.get_text(strip=True) for data in sub_span])
+                    for span in spans:
+                        data = []
+                        if span.strings:
+                            for string in span.strings:
+                                if not string.isspace():
+                                    data.append(string.strip())
+                        if len(data) == 1:
+                            row_values.append(data[0])
+                        else:
+                            row_values.append(data)
+
             row_dict = dict(zip(headers,row_values))
             table_data.append(row_dict)
 
@@ -62,7 +73,7 @@ def test():
             FROM scrape_sessions
             WHERE race_id = ?;
             """,
-            (1287,)
+            (1047,)
         )
         output = cursor.fetchall()
 
@@ -78,4 +89,4 @@ def test():
         #print(session[0])
         pprint(results)
 
-test()
+#test()

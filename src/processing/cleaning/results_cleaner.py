@@ -60,6 +60,38 @@ def _insert_driver_code(driver_id: str, driver_code: int, year: int):
                          year
                          )
                         )
+        
+def _insert_constructor_details(constructor_id: str, team: str):
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""
+                        INSERT INTO race_constructors (constructor_id,
+                                                       name
+                                                      )
+                        VALUES (?, ?)
+                        ON CONFLICT (constructor_id) DO NOTHING;
+                        """,
+                        (constructor_id,
+                         team
+                         )
+                        )
+        
+def _insert_driver_constructor_link(driver_id: str, constructor_id: str, year: int):
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""
+                        INSERT INTO race_driver_constructor_history (driver_id,
+                                                                     constructor_id,
+                                                                     season
+                                                                    )
+                        VALUES (?, ?, ?)
+                        ON CONFLICT (driver_id, constructor_id, season) DO NOTHING;
+                        """,
+                        (driver_id,
+                         constructor_id,
+                         year
+                         )
+                        )
 
 def _driver_processing(results: list[dict], year: int):
     headers = fm.get_headers(results)
@@ -76,7 +108,9 @@ def _driver_processing(results: list[dict], year: int):
         _insert_driver_details(driver_id, fname=driver[0], lname=driver[1])
         _insert_driver_number(driver_id, number, year)
         _insert_driver_code(driver_id, driver_code=driver[2], year=year)
-        
+        constructor_id = "_".join(name for name in team.lower().split(" "))
+        _insert_constructor_details(constructor_id, team)
+        _insert_driver_constructor_link(driver_id, constructor_id, year)
 
 def run(year: int, 
         race_id: int, 

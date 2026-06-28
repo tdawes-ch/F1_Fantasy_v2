@@ -8,7 +8,15 @@ from database.management import connection
 from pprint import pprint
 from config.config import DB_PATH
 
-def get_race_results(soup: BeautifulSoup, url: str):
+def get_results(soup: BeautifulSoup) -> list[dict] | None:
+    """Extracts a table of results from the F1 results HTML page. Should work for all session types
+
+    Args:
+        soup (BeautifulSoup): Raw HTML data
+
+    Returns:
+        list[dict]: The table of results in the format of a list of dictionaries
+    """
     headers = []
     table_data = []
 
@@ -27,13 +35,15 @@ def get_race_results(soup: BeautifulSoup, url: str):
     for row in tbody.find_all("tr"):
         columns = row.find_all("td")
         if len(columns) != len(headers):
-            return "Mismatch with headers and columns"
+            raise ValueError("Mismatch with headers and columns")
         else:
             row_values = []
             for column in columns:
                 spans = column.find_all("span") # there is a span in driver name as there is FNAME, LNAME, SHORT (Lewis, Hamilton, HAM)
                 if not spans or len(spans) <= 1: # constructor data is held in a span, but just one span. Ignore it if it's just the one
                     row_values.append(column.get_text(strip=True))
+                elif:
+                    
                 else:
                     row_values.append([span.get_text(strip=True) for span in spans[2:]])
     
@@ -52,7 +62,7 @@ def test():
             FROM scrape_sessions
             WHERE race_id = ?;
             """,
-            (1048,)
+            (1287,)
         )
         output = cursor.fetchall()
 
@@ -64,8 +74,8 @@ def test():
 
     for session in sessions:
         html = fm.load_html_file(filepath=session[1])
-        results = get_race_results(soup=html, url=session[0])
-        print(session[0])
-        #pprint(results)
+        results = get_results(soup=html)
+        #print(session[0])
+        pprint(results)
 
 test()

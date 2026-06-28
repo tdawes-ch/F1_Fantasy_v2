@@ -153,4 +153,5 @@ def download_races(urls: list[str], year: int, progress: Progress):
             
         progress.remove_task(download_task)
     else:
+        progress.remove_task(download_task)
         return

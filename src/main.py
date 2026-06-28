@@ -11,6 +11,7 @@ from config.config import RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_PATH
 from pipelines import setup_checker
 from interface.progress_manager import get_progress_bar
 from rich.console import Console
+from rich import print
 from interface import prompts
 from pipelines.get_data import get_all_races, get_all_results, get_race_data, get_session_data
 from processing.migration import scrape_to_race
@@ -36,9 +37,15 @@ def main():
     with get_progress_bar() as setup_progress:
         # Set up the database!!
         db_task = setup_progress.add_task("Initialising database...", total=None)
-        init_db.init_db(db_path=DB_PATH)
-        setup_progress.remove_task(db_task)
 
+        try:
+            init_db.init_db(db_path=DB_PATH)
+            setup_progress.remove_task(db_task)
+        except Exception as e:
+            setup_progress.remove_task(db_task)
+            print(f"\n[b i]Error occurred when setting up database:[/b i][red]\n{e}[/red]")
+
+    
         # Now do checks
         setup_task = setup_progress.add_task("Running setup checks...",total=len(checker.checks))
 
@@ -111,6 +118,7 @@ def main():
 
     with get_progress_bar() as results_progress:
         console.print(f"[b]\nCollecting results from sessions:[/b]")
+        get_all_results.run(start_year, end_year, results_progress)
 
     with get_progress_bar() as migration_progress:
         console.print(f"[b]\nCopying data from scraped tables to race tables:[/b]")

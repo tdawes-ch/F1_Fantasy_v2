@@ -8,7 +8,7 @@ from database.management import connection
 from pprint import pprint
 from config.config import DB_PATH
 
-def get_results(soup: BeautifulSoup) -> list[dict] | None:
+def get_results(soup: BeautifulSoup) -> list[dict]:
     """Extracts a table of results from the F1 results HTML page. Should work for all session types
 
     Args:
@@ -22,12 +22,12 @@ def get_results(soup: BeautifulSoup) -> list[dict] | None:
 
     table = soup.find("table", class_ = "Table-module_table__cKsW2")
     if not table:
-        return
+        raise ValueError("Couldn't find table within HTML data")
 
     thead = table.find("thead")
     tbody = table.find("tbody")
     if not thead or not tbody:
-        return 
+        raise ValueError("Couldn't find table data within HTML table") 
     
     for heading in thead.find_all("th"):
         headers.append(heading.get_text(strip=True))
@@ -87,6 +87,6 @@ def test():
         html = fm.load_html_file(filepath=session[1])
         results = get_results(soup=html)
         #print(session[0])
-        pprint(results)
+        #pprint(results)
 
 #test()

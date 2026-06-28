@@ -61,9 +61,18 @@ def _create_filename(url: str) -> str:
                        )
                       )
         output = cursor.fetchone()[0].strip() # bad idea to not strip the output lol
-    return f"{"_".join(session_name for session_name in output.lower().split(" "))}.html"
+    return f"{"_".join(session_name for session_name in output.lower().split(" "))}"
 
-def _get_race_name(url: str):
+def _get_race_name(url: str) -> str:
+    """An internal function that gets the race name from a given URL by querying the database. 
+    It uses a join between 'scrape_race_weekends' and 'scrape_sessions'. This is used when generating an output filepath.
+
+    Args:
+        url (str): The URL of the session
+
+    Returns:
+        race_name (str): The name of the race e.g. Monaco
+    """    
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
@@ -74,10 +83,16 @@ def _get_race_name(url: str):
                         """,
                         (url, )
                             )
-        race_name = cursor.fetchone()
-    return race_name[0]
+        race_name = cursor.fetchone()[0]
+    return race_name
 
 def _write_to_scrape_sessions(url: str, filepath: Path):
+    """Sets the filepath and timestamp that the URL was scraped into the scrape_sessions table
+
+    Args:
+        url (str): The URL being scraped
+        filepath (Path): The output path that the respective HTML file was saved in
+    """    
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
@@ -95,10 +110,13 @@ def _write_to_scrape_sessions(url: str, filepath: Path):
 
 def download_sessions(urls: list[str], year: int, race_id: int, progress: Progress):
     """
+    Given a list of session URLs for a specific race weekend (year & race ID), it loop through and 
+    downloads each HTML file from the URL.
+
     Args:
     - urls: a list of session urls for a set race weekend
     - year: the year being processed
-    - race_id: the race ID of the race weekend
+    - race_id: the race ID of the race weekend. Currently unused
     - progress: the progress bar
     """
     ## progresss bar

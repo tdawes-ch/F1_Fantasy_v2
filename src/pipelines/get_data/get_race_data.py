@@ -96,7 +96,7 @@ def run(start_year: int, end_year: int, progress: Progress, flag: str='db'):
     # go through each year
     for year in range(start_year, end_year+1):
         ## progress bars
-        progress.update(extraction_task,description=f"[bold magenta]{year}:[/bold magenta][bright_cyan] Getting race URLs...[/bright_cyan]")
+        progress.update(extraction_task,description=f"[bold magenta]Current year: {year}[/bold magenta][bright_cyan] Getting race URLs...[/bright_cyan]")
 
         # get the urls to pass through
         if flag.lower() == 'db':

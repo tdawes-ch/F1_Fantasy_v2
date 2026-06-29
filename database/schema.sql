@@ -15,21 +15,21 @@ Creates all of the tables for the F1 fantasy program.
 -- Master scraper table (all)
 CREATE TABLE IF NOT EXISTS scrape_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT,
-    filepath TEXT,
-    last_scraped TIMESTAMP
+    url TEXT, -- www.url/to/page
+    filepath TEXT, -- path/to/saved.html
+    last_scraped TIMESTAMP -- dd/mm/yyy HH:MM:SS
 );
 
 -- season data
 CREATE TABLE IF NOT EXISTS scrape_seasons (
     year INTEGER PRIMARY KEY,
-    url TEXT,
-    filepath TEXT UNIQUE,
-    expected_races INTEGER,
-    scraped_races INTEGER DEFAULT 0,
-    has_races BOOLEAN DEFAULT 0,
-    scraped BOOLEAN DEFAULT 0,
-    last_scraped TIMESTAMP
+    url TEXT, -- www.url/to/season.html
+    filepath TEXT UNIQUE, -- path/to/year.html
+    expected_races INTEGER, -- 24
+    scraped_races INTEGER DEFAULT 0, -- 20
+    has_races BOOLEAN DEFAULT 0, -- 1
+    scraped BOOLEAN DEFAULT 0, -- 1
+    last_scraped TIMESTAMP -- dd/mm/yyy HH:MM:SS
 );
 
 -- weekend data
@@ -44,21 +44,21 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
     filepath TEXT UNIQUE, -- path/to/html
     scraped BOOLEAN DEFAULT 0, -- 0
     has_sessions BOOLEAN DEFAULT 0,
-    last_scraped TIMESTAMP,
+    last_scraped TIMESTAMP, -- dd/mm/yyy HH:MM:SS
     FOREIGN KEY (year) REFERENCES seasons(year)
 );
 
 -- session data
 CREATE TABLE IF NOT EXISTS scrape_sessions (
     session_id INTEGER PRIMARY KEY,
-    race_id INTEGER,
-    year INTEGER,
-    session_type TEXT,   -- FP1, FP2, FP3, Quali, Race
-    url TEXT UNIQUE,
-    filepath TEXT UNIQUE,
+    race_id INTEGER, -- 1144
+    year INTEGER, -- 2020
+    session_type TEXT, -- FP1, FP2, FP3, Quali, Race
+    url TEXT UNIQUE, -- www.url/to/session
+    filepath TEXT UNIQUE, -- path/to/session.html
     scraped BOOLEAN DEFAULT 0,
-    has_data BOOLEAN DEFAULT 0,
-    last_scraped TIMESTAMP,
+    has_data BOOLEAN DEFAULT 0, 
+    last_scraped TIMESTAMP, -- dd/mm/yyy HH:MM:SS
     FOREIGN KEY (year) REFERENCES scrape_seasons(year),
     FOREIGN KEY (race_id) REFERENCES scrape_race_weekends(round)
 );
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS scrape_sessions (
 -- f1 data tables
 -- 1. CONSTRUCTORS
 CREATE TABLE IF NOT EXISTS race_constructors (
-    constructor_id TEXT PRIMARY KEY,
+    constructor_id TEXT PRIMARY KEY, -- mercedes
     name TEXT NOT NULL UNIQUE -- Mercedes
 );
 
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS race_drivers (
 CREATE TABLE IF NOT EXISTS race_driver_code_history (
     driver_id TEXT, -- max_verstappen, vos_verstappen
     code TEXT, -- VER, HAM, LEC
-    season INTEGER,
+    season INTEGER,  -- 2020
     PRIMARY KEY (driver_id, season),
     FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
     FOREIGN KEY (season) REFERENCES race_seasons (season)
@@ -102,9 +102,9 @@ CREATE TABLE IF NOT EXISTS race_driver_number_history (
 
 -- 4. DRIVER CONSTRUCTOR HISTORY
 CREATE TABLE IF NOT EXISTS race_driver_constructor_history (
-    driver_id TEXT,
-    constructor_id INTEGER,
-    season INTEGER NOT NULL,
+    driver_id TEXT, -- lewis_hamilton
+    constructor_id INTEGER, -- mercedes
+    season INTEGER NOT NULL, -- 2020
     PRIMARY KEY (driver_id, constructor_id, season),
     FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id) ON DELETE CASCADE,
     FOREIGN KEY (constructor_id) REFERENCES race_constructors (constructor_id) ON DELETE CASCADE
@@ -112,11 +112,11 @@ CREATE TABLE IF NOT EXISTS race_driver_constructor_history (
 
 -- 5. RACES (Links to your existing scrape_seasons log table)
 CREATE TABLE IF NOT EXISTS race_races (
-    race_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    circuit TEXT,
-    city TEXT,
-    season INTEGER NOT NULL,
+    race_id INTEGER PRIMARY KEY AUTOINCREMENT, -- 1202
+    name TEXT NOT NULL, -- Azerbaijan
+    circuit TEXT, -- Baku City Circuit
+    city TEXT, -- Baku
+    season INTEGER NOT NULL, -- 2020
     round INTEGER, -- Helps sort the races in chronological calendar order
     FOREIGN KEY (season) REFERENCES race_seasons (season)
 );
@@ -165,19 +165,19 @@ CREATE TABLE IF NOT EXISTS lap_times (
 
 -- d. Scalable Pit stops table
 CREATE TABLE IF NOT EXISTS pit_stops (
-    session_id INTEGER,
-    driver_id TEXT,
-    stop_number INTEGER,
-    lap_number INTEGER,
+    session_id INTEGER, -- 2020
+    driver_id TEXT, -- lewis_hamilton
+    stop_number INTEGER, -- 2
+    lap_number INTEGER, -- 15
     duration REAL, -- Duration in seconds
     PRIMARY KEY (session_id, driver_id, stop_number)
 );
 
 -- e. Race duration
 CREATE TABLE IF NOT EXISTS race_duration (
-    session_id INTEGER,
-    driver_id TEXT,
-    n_laps INTEGER,
+    session_id INTEGER, -- 2020
+    driver_id TEXT, -- lewis_hamilton
+    n_laps INTEGER, -- 44
     time_type TEXT, -- TOTAL, GAP, LAPPED, STATUS
     duration REAL, -- actual time value (full val for TOTAL, gap value (e.g. 1.82) for GAP, no. of laps (e.g. 1, 3) for LAPPED)
     PRIMARY KEY (session_id, driver_id)
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS race_duration (
 
 -- 8. SEASONS
 CREATE TABLE IF NOT EXISTS race_seasons (
-    season INTEGER PRIMARY KEY,
-    total_sessions INTEGER NOT NULL,
-    actual_sessions INTEGER NOT NULL
+    season INTEGER PRIMARY KEY, -- 2020
+    total_sessions INTEGER NOT NULL, -- 22
+    actual_sessions INTEGER NOT NULL -- 22
 );

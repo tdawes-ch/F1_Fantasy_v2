@@ -88,7 +88,7 @@ def run(start_year: int, end_year: int, progress: Progress):
         else:
             pipe = "├"
 
-        progress.update(race_task, description=f"{pipe} [green][b]{year}:[/b] All session results processed.[/green]")
+        progress.update(year_task, description=f"{pipe} [green][b]{year}:[/b] All session results processed.[/green]")
         progress.advance(year_task)
 
     # clean up tasks
@@ -97,6 +97,6 @@ def run(start_year: int, end_year: int, progress: Progress):
 
 def test():
     with get_progress_bar() as migration_progress:
-        run(2026,2026,migration_progress)
+        run(1986,1986,migration_progress)
 
 test()

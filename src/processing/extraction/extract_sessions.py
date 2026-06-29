@@ -113,7 +113,6 @@ def _write_to_db(results: list[dict], url: str, year: int):
                         )
             """
         # update session_id for race_results
-        session_id += 1
         cursor.execute("""
                         UPDATE scrape_sessions
                            SET session_id = ?

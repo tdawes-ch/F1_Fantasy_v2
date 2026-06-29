@@ -149,12 +149,12 @@ def _insert_qualy_time(driver_id: str, session_id: int, result: dict) -> None:
         time_value = result[time_key]
         if time_value.strip() != "":
             # get current round of qualifying
-            qualy_round = database_query.get_n_qualy_sessions(session_id)
-            if qualy_round:
-                qualy_round += 1
-            else:
-                qualy_round = 1
-                _add_qualy_time_to_db(session_id, qualy_round, driver_id, time_value)
+            #qualy_round = database_query.get_n_qualy_sessions(session_id)
+            #if qualy_round:
+            #    qualy_round += 1
+            #else:
+            qualy_round = 1
+            _add_qualy_time_to_db(session_id, qualy_round, driver_id, time_value)
     else: # q1, q2, q3
         for key in result:
             if key.lower().startswith("q"):
@@ -164,7 +164,6 @@ def _insert_qualy_time(driver_id: str, session_id: int, result: dict) -> None:
                     _add_qualy_time_to_db(session_id, qualy_round, driver_id, time_value)
 
 def _qualy_processing(results: list[dict], session_id: int):
-    time_key = _get_time_key(results)
     for race_result in results:
         driver_id = processing.create_driver_id(fname=race_result["Driver"][0], lname=race_result["Driver"][1])
         with connection.get_db(DB_PATH) as conn:  # type: ignore
@@ -289,6 +288,9 @@ def _race_results_processing(results: list[dict], session_id: int):
                             race_result["Laps"]                   
                            )
                           )
+            
+########################## SWITCHBOARD ###########################################
+########## V IMPORTANT  ##########################################################
 
 def _results_switchboard(year: int, 
                          race_id: int, 

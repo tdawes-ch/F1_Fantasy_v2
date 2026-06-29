@@ -119,7 +119,7 @@ def _results_processing(year: int,
                         session_name: str, 
                         results: list[dict], 
                         url: str):
-    print(results)
+    pass
 
 def run(year: int, 
         race_id: int, 

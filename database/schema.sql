@@ -123,28 +123,64 @@ CREATE TABLE IF NOT EXISTS race_races (
 
 -- 6. SESSIONS
 CREATE TABLE IF NOT EXISTS race_sessions (
-    session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    race_id INTEGER NOT NULL,
+    session_id INTEGER PRIMARY KEY AUTOINCREMENT, -- 12472
+    race_id INTEGER NOT NULL, -- 1247
     session_type TEXT NOT NULL, -- 'FP1', 'FP2', 'FP3', 'Qualifying', 'Sprint', 'Race'
     date TEXT, -- Store as 'YYYY-MM-DD HH:MM:SS'
     FOREIGN KEY (race_id) REFERENCES race_races (race_id) ON DELETE CASCADE
 );
 
 -- 7. RESULTS
+-- a. Keep race_results focused on the classification
 CREATE TABLE IF NOT EXISTS race_results (
-    result_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    session_id INTEGER NOT NULL,
-    driver_id TEXT NOT NULL,
-    constructor_id INTEGER NOT NULL, -- Captured at the time of the race
-    position INTEGER, -- Can be NULL if DNF before classification
-    points REAL DEFAULT 0.0, -- REAL handles half-points (e.g., Spa 2021)
-    status TEXT, -- 'Finished', 'DNF', 'DSQ', 'DNS', '+1 Lap'
-    q1_time TEXT, 
-    q2_time TEXT,
-    q3_time TEXT,
-    FOREIGN KEY (session_id) REFERENCES race_sessions (session_id) ON DELETE CASCADE,
-    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id),
-    FOREIGN KEY (constructor_id) REFERENCES race_constructors (constructor_id)
+    session_id INTEGER, -- 12821
+    driver_id TEXT, -- lewis_hamilton
+    pos INTEGER, -- 1
+    points REAL DEFAULT 0.0, -- 25.0
+    status TEXT, -- NULL (DNF, DNS, DSQ, NC, etc.)
+    PRIMARY KEY (session_id, driver_id)
+    FOREIGN KEY (session_id) REFERENCES race_sessions(session_id),
+    FOREIGN KEY (driver_id) REFERENCES race_drivers (driver_id)
+);
+
+-- b. Separate Qualifying times
+CREATE TABLE IF NOT EXISTS qualifying_times (
+    session_id INTEGER, -- 12821
+    driver_id TEXT, -- lewis_hamilton
+    qualifying_round INTEGER, -- 1 for Q1, 2 for Q2, 3 for Q3
+    lap_time REAL, -- 1:22.210 (stored in seconds.milliseconds though)
+    PRIMARY KEY (session_id, driver_id, qualifying_round),
+    FOREIGN KEY (session_id) REFERENCES race_sessions(session_id),
+    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id)
+);
+
+-- c. Scalable Lap times table
+CREATE TABLE IF NOT EXISTS lap_times (
+    session_id INTEGER, -- 12821
+    driver_id TEXT, -- lewis_hamilton
+    lap_number INTEGER, -- 3
+    lap_time REAL, -- Time in seconds
+    PRIMARY KEY (session_id, driver_id, lap_number)
+);
+
+-- d. Scalable Pit stops table
+CREATE TABLE IF NOT EXISTS pit_stops (
+    session_id INTEGER,
+    driver_id TEXT,
+    stop_number INTEGER,
+    lap_number INTEGER,
+    duration REAL, -- Duration in seconds
+    PRIMARY KEY (session_id, driver_id, stop_number)
+);
+
+-- e. Race duration
+CREATE TABLE IF NOT EXISTS race_duration (
+    session_id INTEGER,
+    driver_id TEXT,
+    n_laps INTEGER,
+    time_type TEXT, -- TOTAL, GAP, LAPPED, STATUS
+    duration REAL, -- actual time value (full val for TOTAL, gap value (e.g. 1.82) for GAP, no. of laps (e.g. 1, 3) for LAPPED)
+    PRIMARY KEY (session_id, driver_id)
 );
 
 -- 8. SEASONS

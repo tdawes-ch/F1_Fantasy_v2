@@ -52,6 +52,7 @@ def run(start_year: int, end_year: int, progress: Progress):
     # setup progress bar
     num_seasons = end_year + 1 - start_year
     year_task = progress.add_task(f"[bold magenta]Current year: {start_year}[/bold magenta]", total=num_seasons)
+    tasks = []
 
     for year in range(start_year, end_year+1):
         progress.update(year_task, description=f"[bold magenta]Current year: {year}[/bold magenta]")
@@ -59,6 +60,7 @@ def run(start_year: int, end_year: int, progress: Progress):
         # get race_ids
         race_ids = database_query.get_race_ids(year=year, has_sessions=True)
         race_task = progress.add_task(f"└ Getting sessions", total=len(race_ids))
+        tasks.append(race_task)
 
         for race_id in race_ids:
             race_name = database_query.get_race_name(race_id)
@@ -66,7 +68,7 @@ def run(start_year: int, end_year: int, progress: Progress):
             session_data = _get_session_info(race_id=race_id)
             
             for session in session_data:
-                progress.update(race_task, description=f"└ Processing results for [b]{race_name}: [dim]{session["session_name"]}[/dim][b]")
+                progress.update(race_task, description=f"└ Processing results for [b]{race_name}:\n  - [dim]{session["session_name"]}[/dim][b]")
                 session_html = fm.load_html_file(filepath=session["filepath"])
                 session_results = extract_results.get_results(soup=session_html)
                 
@@ -79,11 +81,22 @@ def run(start_year: int, end_year: int, progress: Progress):
                                     session_name=session["session_name"],
                                     results=session_results,
                                     url=session["url"])
-                progress.advance(race_task)
-            progress.advance(year_task)
+            progress.advance(race_task)
+        
+        if year == end_year:
+            pipe = "└"
+        else:
+            pipe = "├"
+
+        progress.update(race_task, description=f"{pipe} [green][b]{year}:[/b] All session results processed.[/green]")
+        progress.advance(year_task)
+
+    # clean up tasks
+    for task_id in tasks:
+        progress.remove_task(task_id)
 
 def test():
     with get_progress_bar() as migration_progress:
         run(2026,2026,migration_progress)
 
-#test()
+test()

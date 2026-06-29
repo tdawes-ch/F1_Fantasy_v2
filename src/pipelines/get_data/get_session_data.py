@@ -65,12 +65,14 @@ def run(start_year:int, end_year:int, progress: Progress):
     # setup progress bar
     num_seasons = end_year + 1 - start_year
     year_task = progress.add_task(f"[bold magenta]Current year: {start_year}[/bold magenta]", total=num_seasons)
+    tasks = []
 
     for year in range(start_year, end_year+1):
         progress.update(year_task, description=f"[bold magenta]Current year: {year}[/bold magenta]")
         race_info = _get_race_ids(year)
 
         race_task = progress.add_task(f"└ Getting sessions", total=len(race_info))
+        tasks.append(race_task)
         
         for race_id, race_name in race_info:
             session_urls = _get_session_urls(race_id)
@@ -88,3 +90,6 @@ def run(start_year:int, end_year:int, progress: Progress):
         progress.advance(year_task)
     
     progress.update(year_task,description=f"[green]Data from sessions in {start_year} -> {end_year} extracted[/green]")
+    for task_id in tasks:
+        ## cleans up progress bars
+        progress.remove_task(task_id)

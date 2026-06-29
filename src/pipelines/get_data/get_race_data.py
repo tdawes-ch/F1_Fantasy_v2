@@ -91,6 +91,7 @@ def run(start_year: int, end_year: int, progress: Progress, flag: str='db'):
     """
     # setup progress bar
     num_seasons = end_year + 1 - start_year
+    tasks = []
     extraction_task = progress.add_task(f"[bold magenta]{start_year}:[/bold magenta]", total=num_seasons)
 
     # go through each year
@@ -108,7 +109,8 @@ def run(start_year: int, end_year: int, progress: Progress, flag: str='db'):
         
         progress.update(extraction_task,description=f"[bright_cyan]Current season: [/bright_cyan][bold magenta]{year}[/bold magenta]")
 
-        processing_task = progress.add_task(f"↳ [bold magenta]{year}: [/bold magenta]", total=None)
+        processing_task = progress.add_task(f"└ [bold magenta]{year}: [/bold magenta]", total=None)
+        tasks.append(processing_task)
 
         # scrape all races
         race_scraper.download_races(urls, year, progress)
@@ -120,19 +122,28 @@ def run(start_year: int, end_year: int, progress: Progress, flag: str='db'):
             race_name = _get_race_name_from_db(url=race_url)
             padded_race = f"{race_name:<20}"
 
-            progress.update(processing_task, description=f"↳ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]          Getting HTML Path...[/cyan]")
+            progress.update(processing_task, description=f"└ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]          Getting HTML Path...[/cyan]")
             path_to_html = _get_filepath_to_html_from_url(url=race_url)
-            progress.update(processing_task, description=f"↳ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]               Reading HTML...[/cyan]")
+            progress.update(processing_task, description=f"└ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]               Reading HTML...[/cyan]")
             race_html = fm.load_html_file(filepath=path_to_html)
 
-            progress.update(processing_task, description=f"↳ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan] Extracting circuit details...[/cyan]")
+            progress.update(processing_task, description=f"└ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan] Extracting circuit details...[/cyan]")
             extract_circuit_name.run(html=race_html, url=race_url)
 
-            progress.update(processing_task, description=f"↳ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]        Extracting sessions...[/cyan]")
+            progress.update(processing_task, description=f"└ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]        Extracting sessions...[/cyan]")
             extract_sessions.run(html=race_html, url=race_url, year=year)
             progress.advance(processing_task)
         
-        progress.update(processing_task, description=f"↳ [bold magenta]{year}: [/bold magenta][green]All race data extracted[/green]")
+        if year == end_year:
+            pipe = "└"
+        else:
+            pipe = "├"
 
-        progress.advance(extraction_task)      
-    progress.update(extraction_task,description=f"[bright_green]Data from races in {start_year} -> {end_year} extracted![/bright_green]")
+        progress.update(processing_task, description=f"{pipe} [bold magenta]{year}: [/bold magenta][green]All race data extracted[/green]")
+
+        progress.advance(extraction_task) 
+
+    progress.update(extraction_task,description=f"[bright_green]✓ Data from races in {start_year} -> {end_year} extracted![/bright_green]")
+    for task_id in tasks:
+        ## cleans up progress bars
+        progress.remove_task(task_id)

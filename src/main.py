@@ -116,13 +116,15 @@ def main():
         console.print(f"[b]\nGetting and processing individual race sessions:[/b]")
         get_session_data.run(start_year, end_year, session_progress)
 
-    with get_progress_bar() as results_progress:
-        console.print(f"[b]\nCollecting results from sessions:[/b]")
-        get_all_results.run(start_year, end_year, results_progress)
+    # here marks the end of all scraping ^ now onto processing v
 
     with get_progress_bar() as migration_progress:
         console.print(f"[b]\nCopying data from scraped tables to race tables:[/b]")
         scrape_to_race.migrate_all(progress=migration_progress)
+
+    with get_progress_bar() as results_progress:
+        console.print(f"[b]\nCollecting results from sessions:[/b]")
+        get_all_results.run(start_year, end_year, results_progress)
 
 
 if __name__ == "__main__":

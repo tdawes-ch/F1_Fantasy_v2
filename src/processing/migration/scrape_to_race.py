@@ -123,3 +123,11 @@ def migrate_all(progress: Progress, db_path: Path = DB_PATH):
 
 
     progress.update(migration_task, description=f"[green]✓ Data copied to [i b]race[/i b] tables[/green]")
+
+from interface.progress_manager import get_progress_bar
+
+def do_migration():
+    with get_progress_bar() as progress:
+        migrate_all(progress, DB_PATH)
+
+#do_migration()

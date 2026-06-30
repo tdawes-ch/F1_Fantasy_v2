@@ -148,3 +148,63 @@ def get_n_qualy_sessions(session_id: int) -> int | None:
         else:
             qualy_session = None
     return qualy_session
+
+def get_driver_team_name_for_year(driver_id: str, year: int) -> str | None:
+    """Gets the constructor name for a specific driver and year combination. 
+    May not be accurate for years like 2020 for George Russell. Primarily
+    used to fix the weird situation in 2008 PIT STOP SUMMARY for German GP
+    as Fernando Alonso doesn't have a team name.
+
+    Args:
+        driver_id (str): The driver ID
+
+    Returns:
+        int | None: Number of qualifying rounds, "None" if not found.
+    """    
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""SELECT rc.name
+                            FROM race_drivers rd
+                            LEFT JOIN race_driver_constructor_history rdch ON rd.driver_id = rdch.driver_id
+                                LEFT JOIN race_constructors rc ON rdch.constructor_id = rc.constructor_id
+                           WHERE rd.driver_id = ?
+                             AND rdch.season = ?;
+                        """,(driver_id.lower(),
+                             year)
+                            )
+        output = cursor.fetchone()
+
+        if output:
+            constructor_name = output[0]
+        else:
+            constructor_name = None
+    return constructor_name
+
+def get_fastest_time(session_id: int) -> float | None:
+    """Gets the fastest lap time for a given session
+
+    Args:
+        session_id (int): the session ID
+
+    Returns:
+        float | None: the lap time
+    """    
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""SELECT lap_time
+                            FROM lap_times lt
+                            LEFT JOIN race_results rr ON lt.session_id = rr.session_id
+                                                     AND lt.driver_id = rr.driver_id
+                           WHERE rr.pos = 1
+                             AND lt.session_id = ?;
+                        """,(session_id,))
+        output = cursor.fetchone()
+    if output:
+        if output[0]:
+            lap_time = float(output[0])
+        else:
+            lap_time = None
+    else:
+        lap_time = None
+
+    return lap_time

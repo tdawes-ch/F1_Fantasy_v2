@@ -334,25 +334,6 @@ def _add_lap_result(session_id: int,
                          lap_time)
                        )
 
-def _practice_processing(results: list[dict], session_id: int):
-    time_key = _get_time_key(results)
-    lap_key = _get_lap_key(results)
-    for practice_result in results:
-        driver_id = processing.create_driver_id(fname=practice_result["Driver"][0], lname=practice_result["Driver"][1])
-        if lap_key and time_key:
-            lap_info = practice_result[lap_key]
-            time_info = practice_result[time_key]
-        else:
-            lap_info = None
-            time_info = None
-        # add positional result and lap time
-        _add_lap_result(session_id=session_id,
-                        driver_id=driver_id,
-                        position=practice_result["Pos."],
-                        time_data=time_info,
-                        is_total=1,
-                        lap_info=lap_info)
-
 def _pit_stop_processing(results: list[dict], session_id: int):
     lap_key = _get_lap_key(results)
     time_key = _get_time_key(results)
@@ -431,25 +412,24 @@ def _race_results_processing(results: list[dict], session_id: int):
                            )
                           )
 
-def _fastest_laps_processing(results: list[dict], session_id: int):
+def _lap_session_processing(results: list[dict], session_id: int):
     time_key = _get_time_key(results)
     lap_key = _get_lap_key(results)
-    for fastest_lap in results:
-        driver_id = processing.create_driver_id(fname=fastest_lap["Driver"][0], lname=fastest_lap["Driver"][1])
+    for lap_detail in results:
+        driver_id = processing.create_driver_id(fname=lap_detail["Driver"][0], lname=lap_detail["Driver"][1])
         if lap_key and time_key:
-            lap_info = fastest_lap[lap_key]
-            time_info = fastest_lap[time_key]
+            lap_info = lap_detail[lap_key]
+            time_info = lap_detail[time_key]
         else:
             lap_info = None
             time_info = None
         # add positional result and lap time
         _add_lap_result(session_id=session_id,
                         driver_id=driver_id,
-                        position=fastest_lap["Pos."],
+                        position=lap_detail["Pos."],
                         time_data=time_info,
                         is_total=0,
                         lap_info=lap_info)
-
 
 ########################## SWITCHBOARD ##########################
 ########################## V IMPORTANT ##########################
@@ -476,16 +456,14 @@ def _results_switchboard(year: int,
             raise ValueError(f"Expected driver detail headings not found ({required})")
         
         ## headers are there, can then check session deets
-        if "practice" in session_name.lower(): # practice sessions
-            _practice_processing(results, session_id)
-        elif "qualifying" in session_name.lower(): # qualifying / sprint qualifying
+        if "qualifying" in session_name.lower(): # qualifying / sprint qualifying
             _qualy_processing(results, session_id)
         elif "race" in session_name.lower() or session_name.lower() == "sprint": # race or sprint race (must be == "sprint" to not catch sprint qualy)
             _race_results_processing(results, session_id)
         elif "warm" in session_name.lower(): # weird warmup sessions before practice was a thing
             pass
-        elif "fastest" in session_name.lower(): # fastest laps
-            _fastest_laps_processing(results, session_id)
+        elif "fastest" in session_name.lower() or "practice" in session_name.lower(): # fastest laps
+            _lap_session_processing(results, session_id)
         else: # a session that just has driver and position e.g. starting grid
             pass
 

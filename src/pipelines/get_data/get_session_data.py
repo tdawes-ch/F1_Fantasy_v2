@@ -3,6 +3,7 @@ from database.management import connection
 from pathlib import Path
 from rich.progress import Progress
 from config.config import DB_PATH
+from toolbox import database_query
 
 """
 MAIN GOAL IS TO SCRAPE ALL SESSION HTML PAGES
@@ -60,6 +61,17 @@ def _get_session_urls(race_id: int) -> list[str]:
 
     return urls
 
+def _update_scraped_races(value: int, year: int):
+    with connection.get_db(DB_PATH) as conn: # type: ignore
+        cursor = conn.cursor()
+        cursor.execute(
+                """UPDATE scrape_seasons
+                SET scraped_races = ?
+                WHERE year = ? ;"""
+                ,
+                (value, year)
+                )
+
 
 def run(start_year:int, end_year:int, progress: Progress):
     # setup progress bar
@@ -73,6 +85,10 @@ def run(start_year:int, end_year:int, progress: Progress):
 
         race_task = progress.add_task(f"└ Getting sessions", total=len(race_info))
         tasks.append(race_task)
+
+        ## set scraped races to 0
+        _update_scraped_races(value=0, year=year)
+        
         
         for race_id, race_name in race_info:
             session_urls = _get_session_urls(race_id)
@@ -87,9 +103,16 @@ def run(start_year:int, end_year:int, progress: Progress):
             pipe = "├"
 
         progress.update(race_task, description=f"{pipe} [green][b]{year}:[/b] All sessions collected.[/green]")
+        ## update scraped_races
+        scraped_races = database_query.get_scraped_races(year)
+        if scraped_races:
+            new_scraped_races = scraped_races + 1
+        else:
+            new_scraped_races = 1
+        _update_scraped_races(value=new_scraped_races,year=year)
         progress.advance(year_task)
     
-    progress.update(year_task,description=f"[green]Data from sessions in {start_year} -> {end_year} extracted[/green]")
+    progress.update(year_task,description=f"[green]✓ Data from sessions in {start_year} -> {end_year} extracted[/green]")
     for task_id in tasks:
         ## cleans up progress bars
         progress.remove_task(task_id)

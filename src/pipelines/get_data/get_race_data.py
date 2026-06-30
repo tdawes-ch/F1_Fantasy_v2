@@ -143,7 +143,7 @@ def run(start_year: int, end_year: int, progress: Progress, flag: str='db'):
 
         progress.advance(extraction_task) 
 
-    progress.update(extraction_task,description=f"[bright_green]✓ Data from races in {start_year} -> {end_year} extracted![/bright_green]")
+    progress.update(extraction_task,description=f"[green]✓ Data from races in {start_year} -> {end_year} extracted![/green]")
     for task_id in tasks:
         ## cleans up progress bars
         progress.remove_task(task_id)

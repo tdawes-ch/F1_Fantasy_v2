@@ -142,6 +142,6 @@ def run(start_year: int, end_year: int, progress: Progress) -> None:
 
 def test():
     with get_progress_bar() as migration_progress:
-        run(2000,2026,migration_progress)
+        run(1983,1985,migration_progress)
 
-test()
+#test()

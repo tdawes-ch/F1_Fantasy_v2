@@ -252,7 +252,10 @@ def _get_lap_key(data: list[dict] | dict) -> str | None:
     return None
 
 def _convert_time_result(data: str) -> tuple[float | None, str]:
-    if data[0].isalpha():
+    if not data:
+        time_value = None
+        time_type = "STATUS"
+    elif data[0].isalpha():
         time_value = None
         time_type = "STATUS"
     elif data[0] == "+" and len(data.split(" ")) == 2:
@@ -461,7 +464,7 @@ def _results_switchboard(year: int,
         elif "race" in session_name.lower() or session_name.lower() == "sprint": # race or sprint race (must be == "sprint" to not catch sprint qualy)
             _race_results_processing(results, session_id)
         elif "warm" in session_name.lower(): # weird warmup sessions before practice was a thing
-            pass
+            _lap_session_processing(results, session_id)
         elif "fastest" in session_name.lower() or "practice" in session_name.lower(): # fastest laps
             _lap_session_processing(results, session_id)
         else: # a session that just has driver and position e.g. starting grid

@@ -158,7 +158,8 @@ CREATE TABLE IF NOT EXISTS qualifying_times (
 CREATE TABLE IF NOT EXISTS lap_times (
     session_id INTEGER, -- 12821
     driver_id TEXT, -- lewis_hamilton
-    lap_number INTEGER, -- 3
+    is_total BOOLEAN, -- used to distinguish if lap_number is the number that the event ocurred on (e.g. fastest lap) or the number of laps in a session for prac sessions
+    lap_number INTEGER, -- 3 (number of total laps in practice sessions) NOTE TO SELF: USE LAP NUMBER TO ESTIMATE RELIABILITY / DNF PROBABILITY
     lap_time REAL, -- Time in seconds
     PRIMARY KEY (session_id, driver_id, lap_number)
 );

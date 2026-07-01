@@ -102,7 +102,7 @@ def main():
     print()
 
     start_year, end_year = prompts.get_valid_years()
-    num_seasons = end_year + 1 - start_year
+    num_seasons = end_year + start_year + 1
     
     # console.print(f"\nPreparing to scrape {num_seasons} season(s)...\n")
     # get races from each year
@@ -133,7 +133,7 @@ def main():
     print()
     print("="*20)
     print(f"\n[b]End Time:[/b] {end_time}")
-    print(f"\n[b]Time to process {start_year-end_year+1} seasons:[/b] {end_time-start_time}")
+    print(f"\n[b]Time to process {end_year-start_year+1} seasons:[/b] {end_time-start_time}")
 
 if __name__ == "__main__":
     try:

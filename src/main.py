@@ -103,7 +103,7 @@ def main():
     print()
 
     start_year, end_year = prompts.get_valid_years()
-    num_seasons = end_year + start_year + 1
+    num_seasons = end_year - start_year + 1
     
     # console.print(f"\nPreparing to scrape {num_seasons} season(s)...\n")
     # get races from each year

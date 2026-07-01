@@ -19,6 +19,7 @@ import sys
 from logging_utils.logger_config import setup_logging
 from toolbox import network
 from datetime import datetime
+from datetime import datetime
 
 # setting up console thing
 console = Console()
@@ -28,7 +29,7 @@ def _def_check_offline_mode(results: list):
 
 def main():
     start_time = datetime.now()
-    print(f"[b]Start time:[/b] {start_time}\n")
+    print(f"[b]Start Time:[/b] {start_time}")
     # setup logs
     setup_logging()
 
@@ -102,7 +103,7 @@ def main():
     print()
 
     start_year, end_year = prompts.get_valid_years()
-    num_seasons = end_year + 1 - start_year
+    num_seasons = end_year - start_year + 1
     
     # console.print(f"\nPreparing to scrape {num_seasons} season(s)...\n")
     # get races from each year
@@ -132,9 +133,8 @@ def main():
     end_time = datetime.now()
     print()
     print("="*20)
-    print(f"\n[b]End time:[/b] {end_time}")
-    print(f"[b]Time to process all {start_year-end_year+1} years: {end_time - start_time}")
-
+    print(f"\n[b]End Time:[/b] {end_time}")
+    print(f"\n[b]Time to process {end_year-start_year+1} seasons:[/b] {end_time-start_time}")
 
 if __name__ == "__main__":
     try:

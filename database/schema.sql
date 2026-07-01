@@ -187,6 +187,6 @@ CREATE TABLE IF NOT EXISTS race_duration (
 -- 8. SEASONS
 CREATE TABLE IF NOT EXISTS race_seasons (
     season INTEGER PRIMARY KEY, -- 2020
-    total_sessions INTEGER NOT NULL, -- 22
-    actual_sessions INTEGER NOT NULL -- 22
+    total_sessions INTEGER, -- 22
+    actual_sessions INTEGER -- 22
 );

@@ -366,7 +366,10 @@ def _race_results_processing(results: list[dict], session_id: int):
         for race_result in results:
             driver_id = processing.create_driver_id(fname=race_result["Driver"][0], lname=race_result["Driver"][1])
 
-            if race_result[time_key][0].isalpha(): # If time is DNF, DNS, etc.
+            if not race_result[time_key]: ## to fix null values 
+                status = None
+                time_result = None, None
+            elif race_result[time_key][0].isalpha(): # If time is DNF, DNS, etc.
                 status = race_result[time_key]
                 time_result = None, "STATUS"
             else:

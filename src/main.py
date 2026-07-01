@@ -8,7 +8,7 @@ perform calculations for f1 fantasy team.
 """
 from database import init_db
 from config.config import RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_PATH
-from pipelines import setup_checker
+from pipelines import setup_checker, online_mode
 from interface.progress_manager import get_progress_bar
 from rich.console import Console
 from rich import print
@@ -95,6 +95,7 @@ def main():
                 else:
                     network_test.update(network_task, description=f"[red]Speedtest complete.[/red]")
         prompts.network_status(stats)
+        
     else:
         prompts.announce_offline_mode(network_error)
 

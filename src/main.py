@@ -18,6 +18,7 @@ from processing.migration import scrape_to_race
 import sys
 from logging_utils.logger_config import setup_logging
 from toolbox import network
+from datetime import datetime
 
 # setting up console thing
 console = Console()
@@ -26,6 +27,8 @@ def _def_check_offline_mode(results: list):
     pass
 
 def main():
+    start_time = datetime.now()
+    print(f"[b]Start Time:[/b] {start_time}")
     # setup logs
     setup_logging()
 
@@ -126,6 +129,11 @@ def main():
         console.print(f"[b]\nCollecting results from sessions:[/b]")
         get_all_results.run(start_year, end_year, results_progress)
 
+    end_time = datetime.now()
+    print()
+    print("="*20)
+    print(f"\n[b]End Time:[/b] {end_time}")
+    print(f"\n[b]Time to process {start_year-end_year+1} seasons:[/b] {end_time-start_time}")
 
 if __name__ == "__main__":
     try:

@@ -19,6 +19,7 @@ import sys
 from logging_utils.logger_config import setup_logging
 from toolbox import network
 from datetime import datetime
+from datetime import datetime
 
 # setting up console thing
 console = Console()

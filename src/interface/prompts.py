@@ -7,11 +7,15 @@ from rich.prompt import IntPrompt
 from config.config import DB_PATH, LOG_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_DIR  # Assuming these import paths
 
 def print_welcome_message():
+    """Prints a welcome message for the program
+    """
     print("[b i yellow]========== F1 DATA SCRAPER ==========[/b i yellow]\n")
     _print_small_info()
 
 # more info on paths and stuff
 def _print_big_info():
+    """Prints the session info to the console in the form of a table. More verbose than print_small_info
+    """
     # 1. Initialize table
     table = Table.grid(expand=True)
     table.add_column(style="cyan", justify="left", width=20)   # Category Labels
@@ -55,6 +59,8 @@ def _print_big_info():
 
 # just basic initialisation information
 def _print_small_info():
+    """Prints the session info to the console in the form of a table. Less verbose than print_big_info
+    """
     # 1. Initialize table
     table = Table.grid()
     table.add_column(style="cyan", justify="left", width=20)   # Category Labels
@@ -112,6 +118,12 @@ def get_valid_years() -> tuple[int, int]:
         return start_year, end_year
     
 def checker_summary(results: list, system_healthy: bool):
+    """Prints a summary of the checks that have been completed
+
+    Args:
+        results (list): The checks
+        system_healthy (bool): Whether the system is healthy or critical
+    """
     print("\n  [b]The following checks have failed:[/b]")
     
 
@@ -124,6 +136,11 @@ def checker_summary(results: list, system_healthy: bool):
             print(f"  - [{colour}][b]{result.description}:[/b] '{result.error}'[/{colour}]")
 
 def network_status(network_results: dict):
+    """Prints network status from network results
+
+    Args:
+        network_results (dict): Network results 
+    """
     if network_results["error"] is None:
         print(f"   [green]Results:[/green]")
         print(f"    ├ [i yellow]{round(network_results["bytes_downloaded"]/ 1024 / 1024, 2)} MB [/i yellow]downloaded in [green]{round(network_results["duration_seconds"],2)}[/green] seconds.")
@@ -132,8 +149,49 @@ def network_status(network_results: dict):
         print(f"[red]Speedtest failed: {network_results["error"]}[/red]")
 
 def announce_offline_mode(error: Exception | None):
+    """Announces offline mode
+
+    Args:
+        error (Exception | None): _description_
+    """
     print(f"[b i]\nNetwork check has failed. Offline mode only.[/b i]")
     if error is not None:
         print(f"Network error: [dim]{error}[/dim]")
     else:
         print(f"Network error: [dim]unknown[/dim]")
+
+def starting_switchboard(network_status: bool):
+    """Displays the online or offline options
+    Online: (1. Scrape data (Full, Recent (Most recent race / Most recent year)),
+             2. Use current data (Check: Thorough/Quick),
+             3. Quit)
+    Offline: (1. Use current data (Check: Thorough/Quick),
+              2. Quit)
+
+    Args:
+        network_status (bool): The current network status
+
+    Returns:
+        response: The user's response
+    """
+    online_options = ["Scrape data from F1 website",
+                      "Continue with existing data",
+                      "Quit"]
+    offline_options = ["Continue with existing data",
+                       "Quit"]
+
+    if network_status:
+        options = online_options
+    else:
+        options = offline_options
+        
+    for i, prompt in enumerate(options):
+        print(f"{i+1}. {prompt}")
+
+    user_choice = IntPrompt.ask("Enter option")
+    while user_choice not in range(1, len(options)+1):
+        user_choice = IntPrompt.ask(f"[i red]Invalid input![/i red]\nPlease enter value from {1} to {len(options)}.\nEnter option")
+    else:
+        print(f"You've picked: {options[int(user_choice)-1]}")
+    
+starting_switchboard(True)

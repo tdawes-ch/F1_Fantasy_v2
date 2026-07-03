@@ -125,7 +125,7 @@ def main():
 
     with get_progress_bar() as migration_progress:
         console.print(f"[b]\nCopying data from scraped tables to race tables:[/b]")
-        scrape_to_race.migrate_all(progress=migration_progress)
+        scrape_to_race.migrate_all(progress=migration_progress, db_path=DB_PATH, update=False)
 
     with get_progress_bar() as results_progress:
         console.print(f"[b]\nCollecting results from sessions:[/b]")

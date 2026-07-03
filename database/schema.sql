@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
     race_name TEXT, -- Spain
     circuit TEXT, -- Circuit De Catalunya
     city TEXT, -- Barcelona
+    from_date TEXT, -- Store as 'YYYY-MM-DD'
+    to_date TEXT, -- Store as 'YYYY-MM-DD'
     url TEXT UNIQUE, -- www.f1.com
     filepath TEXT UNIQUE, -- path/to/html
     scraped BOOLEAN DEFAULT 0, -- 0
@@ -117,6 +119,8 @@ CREATE TABLE IF NOT EXISTS race_races (
     circuit TEXT, -- Baku City Circuit
     city TEXT, -- Baku
     season INTEGER NOT NULL, -- 2020
+    from_date TEXT, -- Store as 'YYYY-MM-DD'
+    to_date TEXT, -- Store as 'YYYY-MM-DD'
     round INTEGER, -- Helps sort the races in chronological calendar order
     FOREIGN KEY (season) REFERENCES race_seasons (season)
 );

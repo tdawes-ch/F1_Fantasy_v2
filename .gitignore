@@ -227,5 +227,6 @@ __marimo__/
 
 # in case fastf1 module gets used
 f1_cache/
+f1cache/
 
 .VSCodeCounter/

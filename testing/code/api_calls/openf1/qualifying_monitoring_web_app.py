@@ -23,7 +23,6 @@ sessions = fetch_openf1("sessions")
 race_control = fetch_openf1("race_control")
 
 session_name = sessions['session_name'].iloc[0] if not sessions.empty else "Loading Session..."
-print(session_name)
 status = "LIVE"
 if not race_control.empty and 'flag' in race_control.columns:
     # Get the most recent flag status

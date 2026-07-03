@@ -21,7 +21,7 @@ from toolbox import file_management as fm
 from config.config import DB_PATH
 from database.management import connection
 from scraping import race_scraper
-from processing.extraction import extract_circuit_name, extract_sessions
+from processing.extraction import extract_circuit_name, extract_sessions, extract_session_date
 from rich.progress import Progress
 
 def _get_race_name_from_db(url: str) -> str:
@@ -129,6 +129,9 @@ def run(start_year: int, end_year: int, progress: Progress, flag: str='db'):
 
             progress.update(processing_task, description=f"└ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan] Extracting circuit details...[/cyan]")
             extract_circuit_name.run(html=race_html, url=race_url)
+
+            progress.update(processing_task, description=f"└ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]       Extracting date info...[/cyan]")
+            extract_session_date.run(html=race_html, url=race_url)
 
             progress.update(processing_task, description=f"└ [bold magenta]{year}: [/bold magenta][purple]{padded_race}[/purple][cyan]        Extracting sessions...[/cyan]")
             extract_sessions.run(html=race_html, url=race_url, year=year)

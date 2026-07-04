@@ -107,8 +107,8 @@ def run(start_year: int, end_year: int, progress: Progress) -> None:
                 progress.update(year_task, description=f"└ Processing results for [b]{race_name}:\n  - [dim]{session["session_name"]}[/dim][b]")
                 session_html = fm.load_html_file(filepath=session["filepath"])
                 session_results = extract_results.get_results(soup=session_html)
-                
-                if not race_name: # so pylance won't have a fit
+            
+                if not race_name or not session_results: # so pylance won't have a fit
                     continue 
                 
                 output_path = _make_output_path(year, race_name, session["session_name"])
@@ -142,6 +142,6 @@ def run(start_year: int, end_year: int, progress: Progress) -> None:
 
 def test():
     with get_progress_bar() as migration_progress:
-        run(1950,2026,migration_progress)
+        run(2026,2026,migration_progress)
 
 #test()

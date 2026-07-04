@@ -4,3 +4,4 @@ requests
 validators
 rich
 speedcheck
+unidecode

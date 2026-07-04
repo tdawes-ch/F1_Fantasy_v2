@@ -20,7 +20,7 @@ def _extract_dates(soup: BeautifulSoup) -> dict:
 
     for div in soup.find_all("div", class_ = div_class):
         for p in div.find_all("p", class_ = p_class):
-            dates = p.get_text().split(" ")
+            dates = p.get_text().strip().split(" ")
             if "-" in dates:
                 results={
                     "from_date": f"{dates[-1]}-{datetime.strptime(dates[-2], "%b").strftime("%m")}-{dates[0]}",

@@ -4,7 +4,7 @@ import os
 from rich.panel import Panel
 from rich.table import Table
 from rich.prompt import IntPrompt
-from config.config import DB_PATH, LOG_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_DIR  # Assuming these import paths
+from config.config import DB_PATH, LOG_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_DIR, FANTASY_PROCESSED_DIR, FANTASY_RAW_DIR  # Assuming these import paths
 
 def print_welcome_message():
     """Prints a welcome message for the program
@@ -40,6 +40,8 @@ def _print_big_info():
     table.add_row("Log Directory:", f"[i dim]{LOG_DIR}[/i dim]")
     table.add_row("Raw HTML Directory:", f"[i dim]{RAW_DATA_DIR}[/i dim]")
     table.add_row("Processed CSV Directory:", f"[i dim]{PROCESSED_DATA_DIR}[/i dim]")
+    table.add_row("Raw Fantasy Data:", f"[i dim]{FANTASY_RAW_DIR}[/i dim]")
+    table.add_row("Processed Fantasy Data:", f"[i dim]{FANTASY_PROCESSED_DIR}[/i dim]")
 
     table.add_row("", "")  # Visual Spacer line
 

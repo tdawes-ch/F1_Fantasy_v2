@@ -16,8 +16,9 @@ def _extract_prices(soup: BeautifulSoup) -> dict:
     # Sets classes found in f1 site. Stupid arbitrary names, let's hope they don't change
     div_class = "si-stats__list-grid"
     results = {}
+    div = soup.find("div", class_ = div_class, recursive=True)
 
-    for div in soup.find_all("div", class_ = div_class):
+    for div in soup.find_all("div", class_ = div_class, recursive=True):
         li = div.find_all("li")
         if not li:
             raise ValueError(f"Could not find list (li) in div: {div_class}")
@@ -27,7 +28,8 @@ def _extract_prices(soup: BeautifulSoup) -> dict:
     if results:
         return results # this is a dictionary of each session and its url
     else:
-        raise LookupError("Couldn't extract date information")
+        return results
+        #raise LookupError("Couldn't extract date information")
 
 def write_prices_to_db(from_date: str, to_date: str, url: str):
     with connection.get_db(DB_PATH) as conn: # type: ignore

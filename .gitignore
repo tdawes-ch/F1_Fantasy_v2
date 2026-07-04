@@ -224,6 +224,7 @@ __marimo__/
 *.html
 *.csv
 *.pyc
+*.json
 
 # in case fastf1 module gets used
 f1_cache/

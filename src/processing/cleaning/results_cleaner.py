@@ -21,7 +21,9 @@ def _insert_driver_details(driver_id: str, fname: str, lname: str):
                                                   surname
                                                  )
                         VALUES (?, ?, ?)
-                        ON CONFLICT (driver_id) DO NOTHING;
+                        ON CONFLICT (driver_id) DO UPDATE SET
+                        forename = excluded.forename,
+                        surname = excluded.surname;
                         """,
                         (driver_id,
                          fname,
@@ -38,7 +40,9 @@ def _insert_driver_number(driver_id: str, driver_number: int, year: int):
                                                                 season
                                                                 )
                         VALUES (?, ?, ?)
-                        ON CONFLICT (driver_id, season) DO NOTHING;
+                        ON CONFLICT (driver_id, season) DO UPDATE SET
+                        number = excluded.number,
+                        season = excluded.season;
                         """,
                         (driver_id,
                          driver_number,
@@ -55,7 +59,9 @@ def _insert_driver_code(driver_id: str, driver_code: int, year: int):
                                                               season
                                                              )
                         VALUES (?, ?, ?)
-                        ON CONFLICT (driver_id, season) DO NOTHING;
+                        ON CONFLICT (driver_id, season) DO UPDATE SET
+                        code = excluded.code,
+                        season = excluded.season;
                         """,
                         (driver_id,
                          driver_code,
@@ -72,7 +78,8 @@ def _insert_constructor_details(constructor_id: str | None, team: str | None):
                                                         name
                                                         )
                             VALUES (?, ?)
-                            ON CONFLICT (constructor_id) DO NOTHING;
+                            ON CONFLICT (constructor_id) DO UPDATE SET
+                            name = excluded.name;
                             """,
                             (constructor_id,
                             team
@@ -280,7 +287,7 @@ def _add_lap_result(session_id: int,
                     position: str,
                     time_data: str | None,
                     is_total: int,
-                    lap_info: str | None) -> None:
+                    lap_info: int | None) -> None:
     # insert into results table
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
@@ -327,6 +334,7 @@ def _add_lap_result(session_id: int,
                         VALUES (?, ?, ?, ?, ?)
                         ON CONFLICT (session_id, driver_id, lap_number)
                         DO UPDATE SET 
+                        is_total = excluded.is_total,
                         lap_number = excluded.lap_number,
                         lap_time = excluded.lap_time;
                         """,
@@ -418,23 +426,27 @@ def _race_results_processing(results: list[dict], session_id: int):
                            )
                           )
 
-def _lap_session_processing(results: list[dict], session_id: int):
+def _lap_session_processing(results: list[dict], session_id: int, is_total: int):
     time_key = _get_time_key(results)
     lap_key = _get_lap_key(results)
     for lap_detail in results:
         driver_id = processing.create_driver_id(fname=lap_detail["Driver"][0], lname=lap_detail["Driver"][1])
         if lap_key and time_key:
             lap_info = lap_detail[lap_key]
+            if lap_info.isdecimal():
+                lap_info = int(lap_info)
+            else:
+                lap_info = -1
             time_info = lap_detail[time_key]
         else:
-            lap_info = None
+            lap_info = -1
             time_info = None
         # add positional result and lap time
         _add_lap_result(session_id=session_id,
                         driver_id=driver_id,
                         position=lap_detail["Pos."],
                         time_data=time_info,
-                        is_total=0,
+                        is_total=is_total,
                         lap_info=lap_info)
 
 ########################## SWITCHBOARD ##########################
@@ -466,10 +478,10 @@ def _results_switchboard(year: int,
             _qualy_processing(results, session_id)
         elif "race" in session_name.lower() or session_name.lower() == "sprint": # race or sprint race (must be == "sprint" to not catch sprint qualy)
             _race_results_processing(results, session_id)
-        elif "warm" in session_name.lower(): # weird warmup sessions before practice was a thing
-            _lap_session_processing(results, session_id)
-        elif "fastest" in session_name.lower() or "practice" in session_name.lower(): # fastest laps
-            _lap_session_processing(results, session_id)
+        elif "warm" in session_name.lower() or "practice" in session_name.lower(): # weird warmup sessions before practice was a thing
+            _lap_session_processing(results, session_id, is_total=1)
+        elif "fastest" in session_name.lower(): # fastest laps
+            _lap_session_processing(results, session_id, is_total=0)
         else: # a session that just has driver and position e.g. starting grid
             pass
 

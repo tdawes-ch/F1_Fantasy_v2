@@ -196,4 +196,14 @@ def starting_switchboard(network_status: bool):
     else:
         print(f"You've picked: {options[int(user_choice)-1]}")
     
-starting_switchboard(True)
+#starting_switchboard(True)
+def scrape_anyway(message: str = ""):
+    user_choice = input(f"Data already exists. {message}\nScrape anyway? (Y/N): ").lower()
+    while user_choice not in ["y","n"]:
+        user_choice = input(f"Invalid input.\nScrape anyway? (Y/N): ").lower()
+
+    match user_choice:
+        case "y":
+            return True
+        case "n": 
+            return False

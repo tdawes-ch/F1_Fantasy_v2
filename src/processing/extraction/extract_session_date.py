@@ -85,5 +85,5 @@ def run_update(start_year:int, end_year:int) -> None:
         race_html = BeautifulSoup(response.text, "html.parser")
         run(race_html, url)
 
-#test(r"https://www.formula1.com/en/results/1980/races/81/brazil/race-result")
+#test(r"https://www.formula1.com/en/results/2026/races/1288/austria/race-result")
 #run_update(1950,2026)

@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS scrape_seasons (
     scraped_races INTEGER DEFAULT 0, -- 20
     has_races BOOLEAN DEFAULT 0, -- 1
     scraped BOOLEAN DEFAULT 0, -- 1
-    last_scraped TIMESTAMP -- dd/mm/yyy HH:MM:SS
+    last_scraped TIMESTAMP, -- dd/mm/yyy HH:MM:SS,
+    FOREIGN KEY (url) REFERENCES scrape_log(url)
 );
 
 -- weekend data
@@ -47,7 +48,8 @@ CREATE TABLE IF NOT EXISTS scrape_race_weekends (
     scraped BOOLEAN DEFAULT 0, -- 0
     has_sessions BOOLEAN DEFAULT 0,
     last_scraped TIMESTAMP, -- dd/mm/yyy HH:MM:SS
-    FOREIGN KEY (year) REFERENCES seasons(year)
+    FOREIGN KEY (year) REFERENCES seasons(year),
+    FOREIGN KEY (url) REFERENCES scrape_log(url)
 );
 
 -- session data
@@ -62,7 +64,8 @@ CREATE TABLE IF NOT EXISTS scrape_sessions (
     has_data BOOLEAN DEFAULT 0, 
     last_scraped TIMESTAMP, -- dd/mm/yyy HH:MM:SS
     FOREIGN KEY (year) REFERENCES scrape_seasons(year),
-    FOREIGN KEY (race_id) REFERENCES scrape_race_weekends(round)
+    FOREIGN KEY (race_id) REFERENCES scrape_race_weekends(round),
+    FOREIGN KEY (url) REFERENCES scrape_log(url)
 );
 
 -- f1 data tables
@@ -165,7 +168,9 @@ CREATE TABLE IF NOT EXISTS lap_times (
     is_total BOOLEAN, -- used to distinguish if lap_number is the number that the event ocurred on (e.g. fastest lap) or the number of laps in a session for prac sessions
     lap_number INTEGER, -- 3 (number of total laps in practice sessions) NOTE TO SELF: USE LAP NUMBER TO ESTIMATE RELIABILITY / DNF PROBABILITY
     lap_time REAL, -- Time in seconds
-    PRIMARY KEY (session_id, driver_id, lap_number)
+    UNIQUE (session_id, driver_id, lap_number, is_total) NULLS NOT DISTINCT,
+    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id),
+    FOREIGN KEY (session_id) REFERENCES race_sessions(session_id)
 );
 
 -- d. Scalable Pit stops table
@@ -175,7 +180,9 @@ CREATE TABLE IF NOT EXISTS pit_stops (
     stop_number INTEGER, -- 2
     lap_number INTEGER, -- 15
     duration REAL, -- Duration in seconds
-    PRIMARY KEY (session_id, driver_id, stop_number)
+    PRIMARY KEY (session_id, driver_id, stop_number),
+    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id),
+    FOREIGN KEY (session_id) REFERENCES race_sessions(session_id)
 );
 
 -- e. Race duration
@@ -185,7 +192,9 @@ CREATE TABLE IF NOT EXISTS race_duration (
     n_laps INTEGER, -- 44
     time_type TEXT, -- TOTAL, GAP, LAPPED, STATUS
     duration REAL, -- actual time value (full val for TOTAL, gap value (e.g. 1.82) for GAP, no. of laps (e.g. 1, 3) for LAPPED)
-    PRIMARY KEY (session_id, driver_id)
+    PRIMARY KEY (session_id, driver_id),
+    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id),
+    FOREIGN KEY (session_id) REFERENCES race_sessions(session_id)
 );
 
 -- 8. SEASONS
@@ -193,4 +202,31 @@ CREATE TABLE IF NOT EXISTS race_seasons (
     season INTEGER PRIMARY KEY, -- 2020
     total_sessions INTEGER, -- 22
     actual_sessions INTEGER -- 22
+);
+
+
+/*FANTASY SCRAPED DATA TABLES*/
+CREATE TABLE IF NOT EXISTS fantasy_driver_prices (
+    driver_id TEXT,
+    price INTEGER, -- Dollar price amount e.g. 24500000
+    date TEXT,
+    PRIMARY KEY (driver_id, date),
+    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id)
+);
+
+CREATE TABLE IF NOT EXISTS fantasy_constructor_prices (
+    constructor_id TEXT,
+    price INTEGER, -- Dollar price amount e.g. 24500000
+    date TEXT,
+    PRIMARY KEY (constructor_id, date),
+    FOREIGN KEY (constructor_id) REFERENCES race_constructors(constructor_id)
+);
+
+CREATE TABLE IF NOT EXISTS fantasy_scraping (
+    url TEXT,
+    date TEXT,
+    is_processed BOOLEAN DEFAULT 0,
+    filepath TEXT, -- path/to/saved.html
+    PRIMARY KEY (url, date),
+    FOREIGN KEY (url) REFERENCES scrape_log(url)
 );

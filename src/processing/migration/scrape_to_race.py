@@ -28,7 +28,7 @@ def scrape_to_race_races(db_path: Path, update: bool):
                 "season":row[4],
                 "round":row[5],
                 "from_date":row[6],
-                "to_date":row[6]
+                "to_date":row[7]
                 }
             # write data to race_races
             if update:

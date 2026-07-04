@@ -8,7 +8,7 @@ from database.management import connection
 from pprint import pprint
 from config.config import DB_PATH
 
-def get_results(soup: BeautifulSoup) -> list[dict]:
+def get_results(soup: BeautifulSoup) -> list[dict] | None:
     """Extracts a table of results from the F1 results HTML page. Should work for all session types
 
     Args:
@@ -35,7 +35,7 @@ def get_results(soup: BeautifulSoup) -> list[dict]:
     for row in tbody.find_all("tr"):
         columns = row.find_all("td")
         if len(columns) != len(headers):
-            raise ValueError("Mismatch with headers and columns")
+            return None
         else:
             row_values = []
             for column in columns:

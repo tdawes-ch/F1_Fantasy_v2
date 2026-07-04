@@ -25,6 +25,8 @@ PROCESSED_DATA_DIR = PROJECT_ROOT / os.getenv("PROCESSED_DATA_DIR", "data/sessio
 # LOG_DATA_DIR = PROJECT_ROOT / os.getenv("LOG_DATA_DIR", "data/logs/processed/")
 LOG_DIR = PROJECT_ROOT / os.getenv("LOG_DIR", "data/logs/")
 DB_DIR = PROJECT_ROOT / os.getenv("DB_DIR", "database/")
+FANTASY_RAW_DIR = PROJECT_ROOT / os.getenv("FANTASY_RAW_DIR", "data/fantasy/raw/")
+FANTASY_PROCESSED_DIR = PROJECT_ROOT / os.getenv("FANTASY_PROCESSED_DIR", "data/fantasy/raw/")
 
 # database paths
 DB_PATH = PROJECT_ROOT / os.getenv("DB_PATH", "database/f1.db")

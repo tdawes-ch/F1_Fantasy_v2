@@ -1,3 +1,5 @@
+from unidecode import unidecode
+
 def time_to_seconds(time_str: str) -> float | None:
     """Converts time data stored in a string to a float (or none, if unconvertable)
 
@@ -39,4 +41,6 @@ def create_driver_id(fname: str, lname: str) -> str:
     Returns:
         str: Generated driver ID
     """
-    return f"{fname}_{lname}".lower()
+    return f"{unidecode("_".join(fname.split()))}_{unidecode("_".join(lname.split()))}".lower()
+
+#print(create_driver_id(fname="José l  hamilton",lname="Hamilton"))

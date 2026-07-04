@@ -20,6 +20,7 @@ from urllib.parse import urlparse
 from database.management import connection
 from config.config import DB_PATH, RAW_DATA_DIR
 from scraping.bones.errors import (ScraperError, InvalidUrlError, FetchError, FileWriteError, FilepathError)
+import json
 
 def validate_url(url: str) -> str:
     """Checks whether the URL is a valid URL or not. Use:
@@ -49,26 +50,27 @@ def validate_url(url: str) -> str:
         return url
 
 
-def validate_output(filepath) -> Path:
-    """Makes sure that the output path is correct (contains a filename and the file is .HTML)
+def validate_output(filepath: Path, suffix: str = ".html") -> Path:
+    """Makes sure that the output path is correct (contains a filename and the file has the correct suffix)
 
     Args:
-        filepath (_type_): Path to the file
+        filepath (Path): Path to the file
+        suffix (str): Suffix of the file, e.g. .html, .json
 
     Raises:
-        FilepathError: Output path must include a filename"
-        FilepathError: Unsupported output file type (not .html)
+        FilepathError: Output path must include a filename
+        FilepathError: Unsupported output file type (not .html, or .json)
 
     Returns:
-        Path: _description_
+        Path: The original path
     """
     path = Path(filepath)
 
     if not path.name:
         raise FilepathError("Output path must include a filename")
 
-    if path.suffix.lower() not in {".html"}:
-        raise FilepathError("Unsupported output file type (not .html")
+    if path.suffix.lower() != suffix.lower():
+        raise FilepathError(f"Unsupported output file type (not {suffix})")
 
     return path
 
@@ -114,6 +116,55 @@ def fetch_url(url: str) -> str:
     except requests.exceptions.RequestException as e:
         # Catch-all for anything requests can throw
         raise RuntimeError(f"Unexpected request error: {e}")
+    
+
+def fetch_json(url: str) -> str:
+    """Uses the requests module to get the HTML text from the URL
+
+    Args:
+        url (str): The URL to be pinged for data
+
+    Raises:
+        FetchError: Invalid URL format (missing schema like http:// or https://)
+        FetchError: Invalid URL provided
+        TimeoutError: Request timed out
+        ConnectionError: Failed to connect to the server
+        RuntimeError: HTTP error
+        RuntimeError: Catches unexpected errors
+
+    Returns:
+        str: Returns pure HTML text
+    """
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.json()
+
+    except requests.exceptions.MissingSchema:
+        raise FetchError("Invalid URL format (missing schema like http:// or https://)")
+
+    except requests.exceptions.InvalidURL:
+        raise FetchError("Invalid URL provided")
+
+    except requests.exceptions.Timeout:
+        raise TimeoutError("Request timed out")
+
+    except requests.exceptions.ConnectionError:
+        raise ConnectionError("Failed to connect to the server")
+
+    except requests.exceptions.HTTPError as e:
+        # This covers non-200 responses after raise_for_status()
+        raise RuntimeError(f"HTTP error occurred: {e}")
+    
+    except requests.exceptions.JSONDecodeError as e:
+        raise RuntimeError(f"JSON Decoder error: {e}")
+    
+    except requests.exceptions.InvalidJSONError as e:
+        raise RuntimeError(f"Invalid JSON error: {e}")
+
+    except requests.exceptions.RequestException as e:
+        # Catch-all for anything requests can throw
+        raise RuntimeError(f"Unexpected request error: {e}")
 
 
 def save_html(html: str, output_path: Path = RAW_DATA_DIR):
@@ -123,13 +174,27 @@ def save_html(html: str, output_path: Path = RAW_DATA_DIR):
         html (str): Raw HTML string of text (usually from html.prettify() )
         output_path (Path, optional): _description_. Defaults to RAW_DATA_DIR (the raw data directory defined in .env).
     """
-    path = validate_output(output_path)
+    path = validate_output(filepath=output_path, suffix=".html")
     path.parent.mkdir(parents=True, exist_ok=True)
 
     tmp_path = path.with_suffix(path.suffix + ".tmp")
 
     tmp_path.write_text(html, encoding="utf-8")
     tmp_path.replace(path)
+
+def save_json(json_data: str, output_path: Path = RAW_DATA_DIR):
+    """Saves the JSON to a .json file defined by 'output_path'
+
+    Args:
+        json (str): JSON data
+        output_path (Path, optional): _description_. Defaults to RAW_DATA_DIR (the raw data directory defined in .env).
+    """
+    path = validate_output(filepath=output_path, suffix=".json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        # indent=4 adds clean spacing, sort_keys is optional but keeps it organized
+        json.dump(json_data, f, indent=4, ensure_ascii=False, sort_keys=True)
 
 def log_to_db(url: str, output_path: Path):
     """All scraped URLs will be logged in the 'scrape_log' table. It will log the URL and the path to the associated HTML file.
@@ -158,4 +223,10 @@ def html_scraper(url: str, output_path: Path):
     html = BeautifulSoup(fetch_url(checked_url),"html.parser")
     prettified_html = html.prettify()
     save_html(prettified_html, output_path)
+    log_to_db(checked_url, output_path)
+
+def json_scraper(url: str, output_path: Path):
+    checked_url = validate_url(url) # is a valid url 
+    json = fetch_json(checked_url)
+    save_json(json, output_path)
     log_to_db(checked_url, output_path)

@@ -21,7 +21,7 @@ download_races gets called, with a list of urls and the season year as the param
 """
 
 from pathlib import Path
-from scraping.bones import html_scraper_toolbox as scraper
+from scraping.bones import scraper_toolbox as scraper
 from config.config import RAW_DATA_DIR, DB_PATH
 import toolbox.file_management as fm
 from toolbox import extract_race_id, database_query

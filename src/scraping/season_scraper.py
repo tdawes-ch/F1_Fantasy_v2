@@ -11,7 +11,7 @@ data/sessions/raw/<year>/<year>.html
 """
 from pathlib import Path
 import datetime
-from scraping.bones import html_scraper_toolbox as scraper
+from scraping.bones import scraper_toolbox as scraper
 from config.config import RAW_DATA_DIR, DB_PATH
 import toolbox.file_management as fm
 from database.management import connection

@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import csv
 from typing import Literal
+import json
 
 def load_html_file(filepath: Path | str) -> BeautifulSoup:
     """Loads an HTML file from a filepath
@@ -26,6 +27,33 @@ def load_html_file(filepath: Path | str) -> BeautifulSoup:
 
     with open(html_path, "r", encoding="utf-8") as f:
         return BeautifulSoup(f, "html.parser")
+    
+
+def load_json_file(filepath: Path | str) -> dict:
+    """Loads a JSON file from a filepath
+
+    Args:
+        filepath (Path | str): The path to the JSON file including filename
+
+    Raises:
+        FileNotFoundError: Path isn't found
+        FileNotFoundError: Isn't a .json file
+
+    Returns:
+        dict: The JSON output
+    """
+    json_path = Path(filepath)
+    # opens an html file as beautifulsoup
+    if not json_path.exists():
+        raise FileNotFoundError(f"File not found: {json_path.name} in {json_path.parent}")
+
+    if json_path.suffix.lower() != ".json":
+        raise FileNotFoundError("File must be a .json file")
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        json_dict = json.load(f)
+
+    return json_dict
     
 
 def write_to_csv(data: list[dict], csv_path: Path | str, headers: list[str]):

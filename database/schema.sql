@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS lap_times (
     is_total BOOLEAN, -- used to distinguish if lap_number is the number that the event ocurred on (e.g. fastest lap) or the number of laps in a session for prac sessions
     lap_number INTEGER, -- 3 (number of total laps in practice sessions) NOTE TO SELF: USE LAP NUMBER TO ESTIMATE RELIABILITY / DNF PROBABILITY
     lap_time REAL, -- Time in seconds
-    UNIQUE (session_id, driver_id, lap_number, is_total) NULLS NOT DISTINCT,
+    PRIMARY KEY (session_id, driver_id, lap_number),
     FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id),
     FOREIGN KEY (session_id) REFERENCES race_sessions(session_id)
 );

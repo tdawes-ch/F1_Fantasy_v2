@@ -6,6 +6,7 @@ from config.config import FANTASY_RAW_DIR, FANTASY_PROCESSED_DIR
 from toolbox import database_query
 from interface import prompts
 from pathlib import Path
+from toolbox import file_management as fm
 
 BASE_URL = r"https://fantasy.formula1.com/en/statistics/details"
 
@@ -18,9 +19,9 @@ def _do_we_need_to_scrape(recent_file: str, directory: Path, latest_race: dict):
     else:
         return False
     
-def _do_we_need_to_process():
+def _do_we_need_to_process() -> bool:
     # check if there are results in the database. If no, we need to process. If there are results, we check if they relate to the 
-    pass
+    return True
         
 def run():
     recent_file, directory = fantasy_price_scraper.get_latest_file(directory=FANTASY_RAW_DIR)
@@ -36,6 +37,10 @@ def run():
     recent_file, directory = fantasy_price_scraper.get_latest_file(directory=FANTASY_RAW_DIR)
     if recent_file:
         file_date = f"{directory.name}-{recent_file.split(".")[0]}"
+        # check if we need to process
+        if _do_we_need_to_process():
+            json_data = fm.load_json_file(directory / recent_file)
+            print(json_data)
 
 def test():
     run()

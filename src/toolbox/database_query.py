@@ -159,7 +159,7 @@ def get_driver_team_name_for_year(driver_id: str, year: int) -> str | None:
         driver_id (str): The driver ID
 
     Returns:
-        int | None: Number of qualifying rounds, "None" if not found.
+        str | None: The driver's team name
     """    
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
@@ -208,3 +208,59 @@ def get_fastest_time(session_id: int) -> float | None:
         lap_time = None
 
     return lap_time
+
+def get_recent_race(table_name: str = "race_races", n_races_ago: int = 0) -> dict | None:
+    """Gets the most recent race information.
+
+    Args:
+        table_name (str): The table name, either "race_races" or "scrape_race_weekends"
+
+    Returns:
+        int | None: Number of qualifying rounds, "None" if not found.
+    """    
+    match table_name:
+        case "race_races":
+            query = """SELECT rr.race_id, rr.season, rr.round, rr.name, rr.circuit, rr.city, rr.from_date, rr.to_date
+                         FROM race_races rr
+                         LEFT JOIN race_sessions rs ON rr.race_id = rs.race_id
+                            LEFT JOIN race_results res ON rs.session_id = res.session_id
+                        WHERE res.session_id IS NOT NULL
+                        GROUP BY rr.race_id, rr.season, rr.round, rr.name, rr.circuit, rr.city, rr.from_date, rr.to_date
+                        ORDER BY season DESC, round DESC;"""
+        case "scrape_race_weekends":
+            # Notice how you can standardise the column count with NULLs here
+            query = """SELECT rr.race_id, rr.year, rr.round, rr.race_name, rr.circuit, rr.city, rr.from_date, rr.to_date
+                         FROM scrape_race_weekends rr
+                        WHERE has_sessions = 1
+                        ORDER BY year DESC, round DESC;"""
+        case _:
+            # The wildcard '_' catches anything that didn't match
+            raise ValueError(f"Invalid or unauthorized table name: {table_name}")
+        
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute(query)
+        output = cursor.fetchall()
+
+    if output:
+        i = 0
+        for race_details in output:
+            if i == n_races_ago:
+                recent_race = {"race_id": race_details[0],
+                            "season": race_details[1],
+                            "round": race_details[2],
+                            "name": race_details[3],
+                            "circuit": race_details[4],
+                            "city": race_details[5],
+                            "from_date": race_details[6],
+                            "to_date": race_details[7]
+                            }
+                break
+            else:
+                i+=1
+        else:
+            recent_race = None
+    else:
+        recent_race = None
+
+    return recent_race

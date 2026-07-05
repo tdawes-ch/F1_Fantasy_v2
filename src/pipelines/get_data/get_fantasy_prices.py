@@ -7,6 +7,7 @@ from toolbox import database_query
 from interface import prompts
 from pathlib import Path
 from toolbox import file_management as fm
+from processing.extraction import extract_fantasy_prices
 
 BASE_URL = r"https://fantasy.formula1.com/en/statistics/details"
 
@@ -32,7 +33,7 @@ def run():
         if _do_we_need_to_scrape(recent_file, directory, latest_race):
             fantasy_price_scraper.run(url=BASE_URL)
         else: # do options
-            if prompts.scrape_anyway(message=f"{recent_file} already exists in '{directory}'"):
+            if prompts.scrape_anyway(message=f"\n{recent_file} already exists in '{directory}'"):
                 fantasy_price_scraper.run(url=BASE_URL)
     recent_file, directory = fantasy_price_scraper.get_latest_file(directory=FANTASY_RAW_DIR)
     if recent_file:
@@ -40,8 +41,8 @@ def run():
         # check if we need to process
         if _do_we_need_to_process():
             json_data = fm.load_json_file(directory / recent_file)
-            print(json_data)
-
+            extract_fantasy_prices.run(json_data, file_date)
+            
 def test():
     run()
 

@@ -1,5 +1,5 @@
-from scraping.bones import html_scraper_toolbox
-from config.config import FANTASY_RAW_DIR
+from scraping.bones import scraper_toolbox
+from config.config import FANTASY_RAW_DIR, DB_PATH
 from pathlib import Path
 from toolbox import file_management as fm
 from datetime import datetime, date
@@ -10,7 +10,7 @@ def _create_dir_path(directory: Path = FANTASY_RAW_DIR) -> Path:
     return directory / datetime.now().strftime("%Y")
 
 def _create_filename() -> str:
-    return f"{datetime.now().strftime('%m-%d')}.html"
+    return f"{datetime.now().strftime('%m-%d')}.json"
 
 def get_latest_file(directory: Path = FANTASY_RAW_DIR) -> tuple[str | None, Path]:
     """Gets the most recent file in the directory by sorting alphabetically (as these files will be named mm_dd.html)
@@ -50,5 +50,7 @@ def run(url: str) -> None:
     directory = _create_dir_path(directory=FANTASY_RAW_DIR)
     filename = _create_filename()
     fullpath = directory / filename
-    html_scraper_toolbox.html_scraper(url=url, output_path=fullpath)
+    scraper_toolbox.json_scraper(url=url, output_path=fullpath)
     _add_to_db(filepath=fullpath, url=url, date=date.today().strftime("%Y-%m-%d"))
+
+run(r"https://fantasy.formula1.com/feeds/drivers/9_en.json")

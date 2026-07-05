@@ -5,10 +5,10 @@ from config.config import DB_PATH
 from database.management import connection
 from datetime import datetime
 
-def _extract_prices(json_data):
+def _extract_prices(json_data: dict):
     pass
 
-def run(json_data: dict, url: str):
+def run(json_data: dict, date: str):
     pass
 
 def test(url: str):

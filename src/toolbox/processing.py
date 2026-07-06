@@ -44,3 +44,6 @@ def create_driver_id(fname: str, lname: str) -> str:
     return f"{unidecode("_".join(fname.split()))}_{unidecode("_".join(lname.split()))}".lower()
 
 #print(create_driver_id(fname="José l  hamilton",lname="Hamilton"))
+
+def create_constructor_id(constructor_name: str) -> str:
+    return "_".join(name for name in constructor_name.lower().split(" "))

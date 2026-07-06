@@ -127,7 +127,7 @@ def _driver_processing(results: list[dict], year: int):
         driver_id = processing.create_driver_id(fname=driver[0], lname=driver[1])
         validated_team_name = _validate_team(team_name=team, driver_id=driver_id, year=year)
         if validated_team_name:
-            constructor_id = "_".join(name for name in validated_team_name.lower().split(" "))
+            constructor_id = processing.create_constructor_id(constructor_name=validated_team_name)
         else:
             constructor_id = None
         # driver db additions

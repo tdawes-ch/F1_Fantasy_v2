@@ -9,7 +9,7 @@ from pathlib import Path
 from toolbox import file_management as fm
 from processing.extraction import extract_fantasy_prices
 
-BASE_URL = r"https://fantasy.formula1.com/en/statistics/details"
+BASE_URL = r"https://fantasy.formula1.com/feeds/drivers/9_en.json"
 
 def _do_we_need_to_scrape(recent_file: str, directory: Path, latest_race: dict):
     # check if the most recent price information is after the most recent race.

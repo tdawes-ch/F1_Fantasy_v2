@@ -14,7 +14,7 @@ must:
 from bs4 import BeautifulSoup
 import validators
 import requests
-import datetime
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 from database.management import connection
@@ -196,21 +196,44 @@ def save_json(json_data: str, output_path: Path = RAW_DATA_DIR):
         # indent=4 adds clean spacing, sort_keys is optional but keeps it organized
         json.dump(json_data, f, indent=4, ensure_ascii=False, sort_keys=True)
 
-def log_to_db(url: str, output_path: Path):
+def log_to_db(url: str, output_path: Path, status: None | str = None) -> datetime:
     """All scraped URLs will be logged in the 'scrape_log' table. It will log the URL and the path to the associated HTML file.
 
     Args:
         url (str): The URL getting scraped
         output_path (Path): The output path of the HTML
     """    
+    current_time = datetime.now()
     with connection.get_db(DB_PATH) as conn: # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
-                        INSERT INTO scrape_log (url, filepath, last_scraped)
-                        VALUES (?, ?, ?);
+                        INSERT INTO scrape_log (url, filepath, last_scraped, status)
+                        VALUES (?, ?, ?, ?);
                         """,
-                        (url, str(output_path), datetime.datetime.now())
+                        (url, str(output_path), current_time, None)
                         )
+    return current_time
+
+def update_db(url: str, output_path: Path, time: datetime, status: str):
+    """This updates the status of the scraped URL, depending on how the network is. If it's F, it's flagged as something that should be retried
+    Args:
+        url (str): The URL getting scraped
+        output_path (Path): The output path of the HTML
+        time (datetime): The time of the original insert
+        status (str): The flag ("C" = confirmed, "F" = failed. Maybe more to come)
+    """    
+    current_time = datetime.now()
+    with connection.get_db(DB_PATH) as conn: # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""
+                        UPDATE scrape_log SET status = ? 
+                        WHERE url = ? 
+                        AND filepath = ?
+                        AND last_scraped = ?;
+                        """,
+                        (status, url, str(output_path), time)
+                        )
+    return current_time
 
 def html_scraper(url: str, output_path: Path):
     """Given a URL and a filepath, this function will download the HTML data, prettify it, save it, and log the action to the database.
@@ -220,13 +243,23 @@ def html_scraper(url: str, output_path: Path):
         output_path (Path): The path for the HTML file that the scraped data will be saved into
     """
     checked_url = validate_url(url) # is a valid url 
-    html = BeautifulSoup(fetch_url(checked_url),"html.parser")
-    prettified_html = html.prettify()
-    save_html(prettified_html, output_path)
-    log_to_db(checked_url, output_path)
+    current_time = log_to_db(checked_url, output_path)
+    try:
+        html = BeautifulSoup(fetch_url(checked_url),"html.parser")
+        prettified_html = html.prettify()
+        save_html(prettified_html, output_path)
+        update_db(checked_url, output_path, current_time, status="C")
+    except Exception as e:
+        update_db(checked_url, output_path, current_time, status="F")
+        raise Exception(e)
 
 def json_scraper(url: str, output_path: Path):
     checked_url = validate_url(url) # is a valid url 
-    json = fetch_json(checked_url)
-    save_json(json, output_path)
-    log_to_db(checked_url, output_path)
+    current_time = log_to_db(checked_url, output_path)
+    try:
+        json = fetch_json(checked_url)
+        save_json(json, output_path)
+        update_db(checked_url, output_path, current_time, status="C")
+    except Exception as e:
+        update_db(checked_url, output_path, current_time, status="F")
+        raise Exception(e)

@@ -264,3 +264,26 @@ def get_recent_race(table_name: str = "race_races", n_races_ago: int = 0) -> dic
         recent_race = None
 
     return recent_race
+
+def get_most_recent_fantasy_date(table_name: str) -> str | None:
+    """Gets the most recent date from one of the fantasy tables.
+
+    Args:
+        table_name (str): SQL table name
+
+    Returns:
+        str | None: Either outputs the date, or nothing
+    """    
+    query = f"""SELECT DISTINCT date FROM {table_name} ORDER BY date DESC;"""
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute(query)
+        output = cursor.fetchone()
+    if output:
+        return output[0]
+    else:
+        return None
+    
+def get_session_results(session_id: int):
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()

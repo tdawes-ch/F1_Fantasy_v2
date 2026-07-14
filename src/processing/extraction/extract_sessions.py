@@ -90,7 +90,7 @@ def _write_to_db(results: list[dict], url: str, year: int):
             cursor.execute("""
                             INSERT INTO scrape_sessions (session_id, race_id, year, session_type, url)
                             VALUES (?, ?, ?, ?, ?)
-                            ON CONFLICT(url) DO NOTHING;
+                            ON CONFLICT(session_id) DO NOTHING;
                             """,
                             (int(f"{race_id}{session_id}"),
                             race_id,

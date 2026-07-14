@@ -78,27 +78,30 @@ def main():
                 # need data!!
             # else show limits of data (e.g. only got data from x to y years)
 
-    # Network Status:
+    do_check = prompts.ask_options(question="[b]Run speedtest?[/b]",
+                                   options=["Yes", "No"])
+    
     network_check, network_error = checker.did_check_pass("network")
-    if network_check:
-        console.print("\n[b]Running network test:[/b]")
-        with get_progress_bar() as network_test:
-            network_task = network_test.add_task("Running network speedtest...", total=1)
-            stats = network.avg_download_speed(attempts=10)
-            if stats["error"] is None:
-                network_test.update(network_task, description=f"[green]Speedtest complete.[/green]",completed=1)
-            else:
-                network_test.update(network_task, description=f"[yellow]Changing server and re-running...[/yellow]")
-                stats = network.run_speedtest()
+    if do_check == 1:
+        # Network Status:
+        if network_check:
+            console.print("\n[b]Running network test:[/b]")
+            with get_progress_bar() as network_test:
+                network_task = network_test.add_task("Running network speedtest...", total=1)
+                stats = network.avg_download_speed(attempts=10)
                 if stats["error"] is None:
                     network_test.update(network_task, description=f"[green]Speedtest complete.[/green]",completed=1)
                 else:
-                    network_test.update(network_task, description=f"[red]Speedtest complete.[/red]")
-        prompts.network_status(stats)
-        
-    else:
-        prompts.announce_offline_mode(network_error)
-
+                    network_test.update(network_task, description=f"[yellow]Changing server and re-running...[/yellow]")
+                    stats = network.run_speedtest()
+                    if stats["error"] is None:
+                        network_test.update(network_task, description=f"[green]Speedtest complete.[/green]",completed=1)
+                    else:
+                        network_test.update(network_task, description=f"[red]Speedtest complete.[/red]")
+            prompts.network_status(stats)
+            
+        else:
+            prompts.announce_offline_mode(network_error)
             
     base_url = "https://www.formula1.com/en/results/{fyear}/races"
     print()

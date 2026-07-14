@@ -97,19 +97,20 @@ def run(start_year:int, end_year:int, progress: Progress):
             session_scraper.download_sessions(urls=session_urls, year=year, race_id=race_id, progress=progress)
             progress.advance(race_task)
 
+            ## update scraped_races
+            scraped_races = database_query.get_scraped_races(year)
+            if scraped_races:
+                new_scraped_races = scraped_races + 1
+            else:
+                new_scraped_races = 1
+            _update_scraped_races(value=new_scraped_races,year=year)
+
         if year == end_year:
             pipe = "└"
         else:
             pipe = "├"
 
         progress.update(race_task, description=f"{pipe} [green][b]{year}:[/b] All sessions collected.[/green]")
-        ## update scraped_races
-        scraped_races = database_query.get_scraped_races(year)
-        if scraped_races:
-            new_scraped_races = scraped_races + 1
-        else:
-            new_scraped_races = 1
-        _update_scraped_races(value=new_scraped_races,year=year)
         progress.advance(year_task)
     
     progress.update(year_task,description=f"[green]✓ Data from sessions in {start_year} -> {end_year} extracted[/green]")

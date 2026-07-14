@@ -1,6 +1,7 @@
 from config.config import DB_PATH
 from database.management import connection
 from datetime import datetime
+from pprint import pp, pprint
 
 def get_last_scraped(url: str) -> datetime | None:
     """Gets the most recent timestamp for when a specific URL was scraped using the scrape_log table
@@ -284,6 +285,26 @@ def get_most_recent_fantasy_date(table_name: str) -> str | None:
     else:
         return None
     
-def get_session_results(session_id: int):
+def get_session_results(session_id: int) -> list[dict]:
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()
+        cursor.execute("""
+                        SELECT driver_id, pos, points, status
+                        FROM race_results rr
+                        WHERE rr.session_id = ?
+                        ORDER BY rr.pos ASC;
+                        """,
+                        (session_id,))
+        output = cursor.fetchall()
+    if not output:
+        raise ValueError(f"No session results for ID: {session_id}")
+    results = []
+    for result in output:
+        results.append({"driver_id": result[0],
+                        "pos": result[1],
+                        "points": result[2],
+                        "status": result[3]})
+    return results
+
+#results = get_session_results(session_id=12899)
+#pprint(results)

@@ -1,10 +1,14 @@
 from bs4 import BeautifulSoup
 import requests # for testing
 from urllib.parse import urljoin
-from config.config import DB_PATH
+from config.config import DB_PATH, FANTASY_PROCESSED_DIR
 from database.management import connection
 from datetime import datetime
 from toolbox import processing
+from pathlib import Path
+import json
+from toolbox import file_management as fm
+from pprint import pprint
 
 def _extract_prices(json_data: dict, date: str) -> list:
     price_info = []
@@ -88,10 +92,51 @@ def _add_price_data(price_data: list, date: str):
             cursor = conn.cursor()
             cursor.execute(query, (data[1], int(data[2] * 1_000_000), date))
 
-def run(json_data: dict, date: str):
-    _add_fantasy_data_to_db(json_data, date)
-    price_data = _extract_prices(json_data, date)
-    _add_price_data(price_data, date)
+def _create_csv_path(date: str, driver_or_constructor: str) -> Path:
+    match driver_or_constructor:
+        case "d" | "driver":
+            identifier = "drivers"
+        case "c" | "constructor":
+            identifier = "constructors"
+        case _:
+            raise ValueError(f"Incorrect value for 'driver_or_constructor'. Expected 'd', 'c', 'driver', or 'constructor'. Got: '{driver_or_constructor}'")
+    year, month, day = date.split("-")
+    return FANTASY_PROCESSED_DIR / year / month / day / f"{identifier}.csv"
+
+def _write_price_data_to_csv(price_data: list, date: str):
+    if price_data:
+        if price_data[0][0] in ["driver_id", "constructor_id"]:
+            pass
+        else:
+            raise ValueError(f"Incorrect format for price_data. Expected either 'driver_id' or 'constructor_id', got {price_data[0]}")
+    
+    driver_prices, constructor_prices = [], []
+    for data in price_data:
+        match data[0]:
+            case "driver_id":
+                driver_prices.append({"driver_id": data[1],
+                                     "price": float(data[2]) * 1_000_000})
+            case "constructor_id":
+                constructor_prices.append({"construcor_id": data[1],
+                                          "price": float(data[2]) * 1_000_000})
+    
+    driver_csv_path, constructor_csv_path = _create_csv_path(date, "driver"), _create_csv_path(date, "constructor")
+    fm.write_to_csv(data=driver_prices, 
+                    csv_path=driver_csv_path,
+                    headers=fm.get_headers(driver_prices))
+    fm.write_to_csv(data=constructor_prices, 
+                    csv_path=constructor_csv_path,
+                    headers=fm.get_headers(constructor_prices))
+
+def run(json_data: dict, date: str) -> bool:
+    try:
+        _add_fantasy_data_to_db(json_data, date)
+        price_data = _extract_prices(json_data, date)
+        _add_price_data(price_data, date)
+        _write_price_data_to_csv(price_data, date)
+        return True
+    except:
+        return False
 
 def test(url: str):
     response = requests.get(url)
@@ -101,5 +146,12 @@ def test(url: str):
     price_data = _extract_prices(json_data, date)
     _add_price_data(price_data, date)
 
-test(r"https://fantasy.formula1.com/feeds/drivers/9_en.json")
+def test_local(json_path: str, date: str):
+    with open(file=json_path,mode="r",encoding="utf-8") as json_data:
+        loaded_json = json.load(json_data)
+    price_data = _extract_prices(loaded_json, date)
+    _write_price_data_to_csv(price_data, date)
+    
+#test_local(json_path="data/fantasy/raw/2026/07-05.json", date="2026-07-05")
+#test(r"https://fantasy.formula1.com/feeds/drivers/9_en.json")
 #run_update(1950,2026)

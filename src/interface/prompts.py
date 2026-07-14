@@ -3,7 +3,7 @@ from rich import print
 import os
 from rich.panel import Panel
 from rich.table import Table
-from rich.prompt import IntPrompt
+from rich.prompt import IntPrompt, Prompt
 from config.config import DB_PATH, LOG_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, DB_DIR, FANTASY_PROCESSED_DIR, FANTASY_RAW_DIR  # Assuming these import paths
 
 def print_welcome_message():
@@ -207,3 +207,24 @@ def scrape_anyway(message: str = ""):
             return True
         case "n": 
             return False
+        
+def ask_options(options: list[str], question: str = "", confirm: bool = False, verbose: bool = False) -> int | None:
+    # print options
+    print(question)
+    for i, option in enumerate(options):
+        print(f"{i+1}. {option}")
+
+    # Ask for answer and validate
+    user_choice = IntPrompt.ask("Enter option")
+    while user_choice not in range(1, len(options)+1) :
+        user_choice = IntPrompt.ask(f"[i red]Invalid input![/i red]\nPlease enter value from {1} to {len(options)}.\nEnter option")
+    
+    if confirm:
+        confirmation = f"You've picked '{user_choice}'{f":\n[i dim]{options[int(user_choice)-1]}[/i dim]" if verbose else ""}\nContinue? (y/n)"
+        yn = Prompt.ask(confirmation)
+        while yn.lower().strip() not in ["y", "n"]:
+            Prompt.ask("Invalid response, enter 'y' or 'n'")
+        if yn == "n":
+            return None
+
+    return user_choice

@@ -6,7 +6,7 @@ import sqlite3
 # Configure logging to help with debugging
 logger = logging.getLogger(__name__)
 
-def init_db(db_path: Path = "database/f1.db" ):
+def init_db(db_path: Path = Path("database/f1.db")):
     schema_path = db_path.parent / "schema.sql"
     
     # 1. Handle File Reading Errors

@@ -53,4 +53,4 @@ def run(url: str) -> None:
     scraper_toolbox.json_scraper(url=url, output_path=fullpath)
     _add_to_db(filepath=fullpath, url=url, date=date.today().strftime("%Y-%m-%d"))
 
-run(r"https://fantasy.formula1.com/feeds/drivers/9_en.json")
+#run(r"https://fantasy.formula1.com/feeds/drivers/9_en.json")

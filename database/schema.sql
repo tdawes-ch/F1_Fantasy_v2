@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS scrape_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     url TEXT, -- www.url/to/page
     filepath TEXT, -- path/to/saved.html
-    last_scraped TIMESTAMP -- dd/mm/yyy HH:MM:SS
+    last_scraped TIMESTAMP, -- dd/mm/yyy HH:MM:SS
+    status TEXT -- NULL, C (confirmed), F (failed
 );
 
 -- season data
@@ -87,7 +88,7 @@ CREATE TABLE IF NOT EXISTS race_drivers (
 
 -- 2.a Driver code history (verstappen: VES -> VER when vergne left)
 CREATE TABLE IF NOT EXISTS race_driver_code_history (
-    driver_id TEXT, -- max_verstappen, vos_verstappen
+    driver_id TEXT, -- max_verstappen, jos_verstappen
     code TEXT, -- VER, HAM, LEC
     season INTEGER,  -- 2020
     PRIMARY KEY (driver_id, season),

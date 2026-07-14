@@ -6,9 +6,9 @@ from pathlib import Path
 from contextlib import contextmanager
 
 @contextmanager
-def get_db(db_path: str):
+def get_db(db_path: Path):
     """Provides a transactional scope around a series of operations."""
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(database=db_path)
     # Optional: Converts row results into dictionary-like objects
     conn.row_factory = sqlite3.Row 
     try:

@@ -55,6 +55,9 @@ def _update_fantasy_scraping(file_date: str):
                         """, 
                         (file_date,))
         
+def _make_url(recent_race: dict) -> str:
+    return f"https://fantasy.formula1.com/feeds/drivers/{recent_race["round"]+1}_en.json"
+        
 def run():
     recent_file, directory = fantasy_price_scraper.get_latest_file(directory=FANTASY_RAW_DIR)
     latest_race = database_query.get_recent_race(table_name="scrape_race_weekends", n_races_ago=0)

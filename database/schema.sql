@@ -208,32 +208,36 @@ CREATE TABLE IF NOT EXISTS race_seasons (
 
 /*FANTASY SCRAPED DATA TABLES*/
 CREATE TABLE IF NOT EXISTS fantasy_driver_prices (
+    year INTEGER,
+    round INTEGER,
     driver_id TEXT,
     price INTEGER, -- Dollar price amount e.g. 24500000
-    date TEXT,
-    PRIMARY KEY (driver_id, date),
+    PRIMARY KEY (driver_id, year, round),
     FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_constructor_prices (
+    year INTEGER,
+    round INTEGER,
     constructor_id TEXT,
     price INTEGER, -- Dollar price amount e.g. 24500000
-    date TEXT,
-    PRIMARY KEY (constructor_id, date),
+    PRIMARY KEY (constructor_id, year, round),
     FOREIGN KEY (constructor_id) REFERENCES race_constructors(constructor_id)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_scraping (
+    year INTEGER,
+    round INTEGER,
     url TEXT,
-    date TEXT,
     is_processed BOOLEAN DEFAULT 0,
     filepath TEXT, -- path/to/saved.html
-    PRIMARY KEY (url, date),
+    PRIMARY KEY (url, year, round),
     FOREIGN KEY (url) REFERENCES scrape_log(url)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_raw_driver_data ( -- data from the fantasy json
-    date TEXT,
+    year INTEGER,
+    round INTEGER,
     skill,
     positionname TEXT,
     value REAL,
@@ -275,12 +279,13 @@ CREATE TABLE IF NOT EXISTS fantasy_raw_driver_data ( -- data from the fantasy js
     projectedgamedaypoints REAL,
     projectednonegativepoints REAL,
     projectedoverallpoints REAL,
-    PRIMARY KEY (date, driver_id),
+    PRIMARY KEY (year, round, driver_id),
     FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_raw_constructor_data ( -- data from the fantasy json
-    date TEXT,
+    year INTEGER,
+    round INTEGER,
     skill,
     positionname TEXT,
     value REAL,
@@ -322,6 +327,6 @@ CREATE TABLE IF NOT EXISTS fantasy_raw_constructor_data ( -- data from the fanta
     projectedgamedaypoints REAL,
     projectednonegativepoints REAL,
     projectedoverallpoints REAL,
-    PRIMARY KEY (date, constructor_id),
+    PRIMARY KEY (year, round, constructor_id),
     FOREIGN KEY (constructor_id) REFERENCES race_constructors(constructor_id)
 );

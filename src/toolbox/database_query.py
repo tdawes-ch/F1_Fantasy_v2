@@ -236,7 +236,7 @@ def get_recent_race(table_name: str = "race_races", n_races_ago: int = 0) -> dic
                         ORDER BY year DESC, round DESC;"""
         case _:
             # The wildcard '_' catches anything that didn't match
-            raise ValueError(f"Invalid or unauthorized table name: {table_name}")
+            raise ValueError(f"Invalid or unauthorized table name: '{table_name}'.")
         
     with connection.get_db(DB_PATH) as conn:  # type: ignore
         cursor = conn.cursor()

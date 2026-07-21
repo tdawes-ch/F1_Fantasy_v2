@@ -404,7 +404,7 @@ def _race_results_processing(results: list[dict], session_id: int):
                             status                             
                            )
                           )
-            
+            nlaps = race_result["Laps"] if race_result["Laps"] != '' else None
             cursor.execute("""
                            INSERT INTO race_duration (session_id,
                                                       driver_id,
@@ -422,7 +422,7 @@ def _race_results_processing(results: list[dict], session_id: int):
                             driver_id,
                             time_result[1],
                             time_result[0],
-                            race_result["Laps"]                   
+                            nlaps                   
                            )
                           )
 

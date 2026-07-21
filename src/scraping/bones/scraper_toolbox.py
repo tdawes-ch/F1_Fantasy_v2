@@ -210,11 +210,14 @@ def log_to_db(url: str, output_path: Path, status: None | str = None) -> datetim
                         INSERT INTO scrape_log (url, filepath, last_scraped, status)
                         VALUES (?, ?, ?, ?);
                         """,
-                        (url, str(output_path), current_time, None)
+                        (url,  # URL
+                         str(output_path), # filepath
+                         current_time, # last_scraped
+                         status) # status
                         )
     return current_time
 
-def update_db(url: str, output_path: Path, time: datetime, status: str):
+def update_db(url: str, output_path: Path, time: datetime, status: str, message: str | None = None):
     """This updates the status of the scraped URL, depending on how the network is. If it's F, it's flagged as something that should be retried
     Args:
         url (str): The URL getting scraped
@@ -226,12 +229,17 @@ def update_db(url: str, output_path: Path, time: datetime, status: str):
     with connection.get_db(DB_PATH) as conn: # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
-                        UPDATE scrape_log SET status = ? 
+                        UPDATE scrape_log 
+                        SET status = ?, message = ? 
                         WHERE url = ? 
                         AND filepath = ?
                         AND last_scraped = ?;
                         """,
-                        (status, url, str(output_path), time)
+                        (status,
+                         message,
+                         url,
+                         str(output_path),
+                         time)
                         )
     return current_time
 
@@ -248,18 +256,40 @@ def html_scraper(url: str, output_path: Path):
         html = BeautifulSoup(fetch_url(checked_url),"html.parser")
         prettified_html = html.prettify()
         save_html(prettified_html, output_path)
-        update_db(checked_url, output_path, current_time, status="C")
+        update_db(checked_url, 
+                  output_path, 
+                  current_time, 
+                  status="C", 
+                  message="success")
     except Exception as e:
-        update_db(checked_url, output_path, current_time, status="F")
+        update_db(checked_url, 
+                  output_path, 
+                  current_time, 
+                  status="F", 
+                  message=str(e))
         raise Exception(e)
 
 def json_scraper(url: str, output_path: Path):
+    """Given a URL and a filepath, this function will download the JSON data, save it, and log the action to the database.
+
+    Args:
+        url (str): URL to be scraped
+        output_path (Path): The path for the JSON file that the scraped data will be saved into
+    """
     checked_url = validate_url(url) # is a valid url 
     current_time = log_to_db(checked_url, output_path)
     try:
         json = fetch_json(checked_url)
         save_json(json, output_path)
-        update_db(checked_url, output_path, current_time, status="C")
+        update_db(checked_url, 
+                  output_path, 
+                  current_time, 
+                  status="C", 
+                  message="success")
     except Exception as e:
-        update_db(checked_url, output_path, current_time, status="F")
+        update_db(checked_url, 
+                  output_path, 
+                  current_time,
+                  status="F", 
+                  message=str(e))
         raise Exception(e)

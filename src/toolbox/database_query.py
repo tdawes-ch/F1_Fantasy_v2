@@ -346,4 +346,4 @@ def get_session_results(session_id: int) -> list[dict]:
 #results = get_session_results(session_id=12899)
 #pprint(results)
 
-print(get_session_ids(1255,["Race Results", "Qualifying"]))
+#print(get_session_ids(1255,["Race Results", "Qualifying"]))

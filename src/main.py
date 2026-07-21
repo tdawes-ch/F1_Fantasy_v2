@@ -13,7 +13,7 @@ from interface.progress_manager import get_progress_bar
 from rich.console import Console
 from rich import print
 from interface import prompts
-from pipelines.get_data import get_all_races, get_all_results, get_race_data, get_session_data
+from pipelines.get_data import get_all_races, get_all_results, get_race_data, get_session_data, get_fantasy_prices
 from processing.migration import scrape_to_race
 import sys
 from logging_utils.logger_config import setup_logging
@@ -120,9 +120,19 @@ def main():
         console.print(f"[b]\nGetting and processing individual races:[/b]")
         get_race_data.run(start_year,end_year,race_progress,flag='db')
 
+    # get session html (e.g. practice 1, qualy, etc.)
     with get_progress_bar() as session_progress:
         console.print(f"[b]\nGetting and processing individual race sessions:[/b]")
         get_session_data.run(start_year, end_year, session_progress)
+
+    # get fantasy json data, but only if the end year is in
+    current_year = int(datetime.now().strftime("%Y"))
+    if current_year in range(start_year, end_year + 1):
+        with get_progress_bar() as fantasy_data_progress:
+            console.print(f"[b]\nGetting and processing fantasy data:[/b]")
+            get_fantasy_prices.run(fantasy_data_progress)
+    else:
+        console.print(f"[b]\nSkipping getting fantasy data as current year ({current_year}) is not within range ({start_year} -> {end_year}).[/b]")
 
     # here marks the end of all scraping ^ now onto processing v
 
@@ -135,9 +145,10 @@ def main():
         get_all_results.run(start_year, end_year, results_progress)
 
     end_time = datetime.now()
+    message = f"\n[b]End Time:[/b] {end_time}"
     print()
-    print("="*20)
-    print(f"\n[b]End Time:[/b] {end_time}")
+    print("="*len(message))
+    print(message)
     print(f"\n[b]Time to process {end_year-start_year+1} seasons:[/b] {end_time-start_time}")
 
 if __name__ == "__main__":

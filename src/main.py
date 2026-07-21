@@ -147,9 +147,10 @@ def main():
     end_time = datetime.now()
     message = f"\n[b]End Time:[/b] {end_time}"
     print()
-    print("="*len(message))
+    print("="*40)
     print(message)
     print(f"\n[b]Time to process {end_year-start_year+1} seasons:[/b] {end_time-start_time}")
+
 
 if __name__ == "__main__":
     try:

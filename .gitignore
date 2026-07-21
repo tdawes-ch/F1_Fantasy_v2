@@ -225,6 +225,7 @@ __marimo__/
 *.csv
 *.pyc
 *.json
+!rules.json
 
 # in case fastf1 module gets used
 f1_cache/

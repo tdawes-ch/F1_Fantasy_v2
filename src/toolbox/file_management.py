@@ -127,10 +127,10 @@ def check_location(filepath: Path, flag: Literal['dir', 'file'] = 'dir') -> bool
         flag (Literal['dir', 'file'], optional): A flag for whether to check for a directory or file. Defaults to 'dir'.
 
     Raises:
-        ValueError: _description_
+        ValueError: An incorrect flag has been passed
 
     Returns:
-        bool: _description_
+        bool: True if the location exists, False if not.
     """
     # Returns True if the filepath exists, False otherwise.
     if flag.lower() == 'dir':

@@ -22,7 +22,7 @@ from bs4 import BeautifulSoup
 import requests # for testing
 from urllib.parse import urljoin
 from pathlib import Path, PurePosixPath
-from toolbox import extract_race_id, database_query
+from toolbox import extract_race_id
 from config.config import DB_PATH
 from database.management import connection
 

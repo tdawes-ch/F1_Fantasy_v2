@@ -210,7 +210,7 @@ def scrape_anyway(message: str = ""):
         
 def ask_options(options: list[str], question: str = "", confirm: bool = False, verbose: bool = False) -> int | None:
     # print options
-    print(question)
+    print(f"\n{question}")
     for i, option in enumerate(options):
         print(f"{i+1}. {option}")
 

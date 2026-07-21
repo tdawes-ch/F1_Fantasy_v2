@@ -125,28 +125,41 @@ def get_session_id(url: str) -> int:
         session_id = int(cursor.fetchone()[0])
     return session_id
 
-def get_session_ids(race_id: int) -> list[int]:
+def get_session_ids(race_id: int,
+                    session_types: list[str] | None = None) -> list[int]:
     """Gets all session IDs using a race ID
 
     Args:
         race_id (int): The race ID
+        session_types (list[str] | None, optional): Allows the user to filter sesion types e.g. "Race Results". Defaults to None.
 
     Returns:
         list[int]: The list of session IDs
     """    
     session_ids = []
-    with connection.get_db(DB_PATH) as conn:  # type: ignore
-        cursor = conn.cursor()
-        cursor.execute("""SELECT session_id
-                            FROM race_sessions
-                           WHERE race_id = ?
-                           ORDER BY session_id DESC;
-                        """,
-                        (race_id,)
-                       )
-        output = cursor.fetchall()
+    if session_types:
+        cleaned_sessions = [f'"{session_type.lower()}"' for session_type in session_types]
+        query = f"""SELECT session_id 
+                      FROM race_sessions
+                     WHERE race_id = {race_id}
+                       AND LOWER(session_type) IN ({','.join(session_type for session_type in cleaned_sessions)})"""
+        with connection.get_db(DB_PATH) as conn:  # type: ignore
+            cursor = conn.cursor()
+            cursor.execute(query)
+            output = cursor.fetchall()
+    else:
+        with connection.get_db(DB_PATH) as conn:  # type: ignore
+            cursor = conn.cursor()
+            cursor.execute("""SELECT session_id
+                                FROM race_sessions
+                            WHERE race_id = ?
+                            ORDER BY session_id DESC;
+                            """,
+                            (race_id,)
+                        )
+            output = cursor.fetchall()
     for session_id in output:
-        session_ids.append(session_id)
+        session_ids.append(session_id[0])
     return session_ids
 
 def get_n_qualy_sessions(session_id: int) -> int | None:
@@ -332,3 +345,5 @@ def get_session_results(session_id: int) -> list[dict]:
 
 #results = get_session_results(session_id=12899)
 #pprint(results)
+
+print(get_session_ids(1255,["Race Results", "Qualifying"]))

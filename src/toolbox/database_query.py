@@ -125,6 +125,30 @@ def get_session_id(url: str) -> int:
         session_id = int(cursor.fetchone()[0])
     return session_id
 
+def get_session_ids(race_id: int) -> list[int]:
+    """Gets all session IDs using a race ID
+
+    Args:
+        race_id (int): The race ID
+
+    Returns:
+        list[int]: The list of session IDs
+    """    
+    session_ids = []
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""SELECT session_id
+                            FROM race_sessions
+                           WHERE race_id = ?
+                           ORDER BY session_id DESC;
+                        """,
+                        (race_id,)
+                       )
+        output = cursor.fetchall()
+    for session_id in output:
+        session_ids.append(session_id)
+    return session_ids
+
 def get_n_qualy_sessions(session_id: int) -> int | None:
     """Gets the current number of qualifying rounds for a set session_id
 

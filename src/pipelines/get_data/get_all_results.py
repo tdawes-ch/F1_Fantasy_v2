@@ -2,7 +2,6 @@
 Not 100% sure yet on how this will work but it will call the relevant results functions
 in processing/extraction/extract_results.py
 '''
-from bs4 import BeautifulSoup
 from toolbox import file_management as fm
 from toolbox import database_query
 from database.management import connection
@@ -15,7 +14,6 @@ from processing.cleaning import results_cleaner
 from pathlib import Path
 
 """ 
-
 We need to go through each year from start to end,
     Go through each race weekend,
         Go through each session:
@@ -85,6 +83,14 @@ def _update_scrape_sessions_table(url: str) -> None:
         output = cursor.fetchall()
 
 def run(start_year: int, end_year: int, progress: Progress) -> None:
+    """Runs the entire results collection pipeline. Iterates through each year, and each race within the year, and each session within the race, 
+    and collects results. It then writes the raw results to a CSV, then writes results to the appropriate database tables.
+
+    Args:
+        start_year (int): The start year
+        end_year (int): The end year
+        progress (Progress): The progress bar instance
+    """
     # setup progress bar
     num_seasons = end_year + 1 - start_year
     processing_task = progress.add_task(f"[bold magenta]Current year: {start_year}[/bold magenta]", total=num_seasons)

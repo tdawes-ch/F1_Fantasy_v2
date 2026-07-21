@@ -9,8 +9,9 @@ from database.management import connection
 def _create_dir_path(directory: Path = FANTASY_RAW_DIR) -> Path:
     return directory / datetime.now().strftime("%Y")
 
-def _create_filename() -> str:
-    return f"{datetime.now().strftime('%m-%d')}.json"
+def _create_filename(round: int) -> str:
+    # datetime.now().strftime('%m-%d')
+    return f"{round}.json"
 
 def get_latest_file(directory: Path = FANTASY_RAW_DIR) -> tuple[str | None, Path]:
     """Gets the most recent file in the directory by sorting alphabetically (as these files will be named mm_dd.html)
@@ -33,24 +34,25 @@ def get_latest_file(directory: Path = FANTASY_RAW_DIR) -> tuple[str | None, Path
     else:
         return None, directory
 
-def _add_to_db(filepath: Path | str, url: str, date: str):
+def _add_to_db(filepath: Path | str, url: str, year: int, round: int):
     filepath = str(filepath)
     with connection.get_db(DB_PATH) as conn: # type: ignore
         cursor = conn.cursor()
         cursor.execute("""
-                        INSERT INTO fantasy_scraping (url, date, is_processed, filepath)
-                        VALUES(?, ?, ?, ?)
-                        ON CONFLICT (url, date)
+                        INSERT INTO fantasy_scraping (url, year, round, is_processed, filepath)
+                        VALUES(?, ?, ?, ?, ?)
+                        ON CONFLICT (url, year, round)
                         DO NOTHING;
                         """,
-                        (url, date, 0, filepath)
+                        (url, year, round, 0, filepath)
                         )
     
-def run(url: str) -> None:
+def run(url: str, year: int, round: int) -> None:
     directory = _create_dir_path(directory=FANTASY_RAW_DIR)
-    filename = _create_filename()
+    filename = _create_filename(round)
     fullpath = directory / filename
     scraper_toolbox.json_scraper(url=url, output_path=fullpath)
-    _add_to_db(filepath=fullpath, url=url, date=date.today().strftime("%Y-%m-%d"))
+    # date=date.today().strftime("%Y-%m-%d")
+    _add_to_db(filepath=fullpath, url=url, year=year, round=round)
 
 #run(r"https://fantasy.formula1.com/feeds/drivers/9_en.json")

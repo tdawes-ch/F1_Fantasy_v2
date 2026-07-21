@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS scrape_log (
     url TEXT, -- www.url/to/page
     filepath TEXT, -- path/to/saved.html
     last_scraped TIMESTAMP, -- dd/mm/yyy HH:MM:SS
-    status TEXT -- NULL, C (confirmed), F (failed
+    status TEXT, -- NULL, C (confirmed), F (failed)
+    message TEXT -- Error message, or SUCCESS!
 );
 
 -- season data
@@ -213,7 +214,8 @@ CREATE TABLE IF NOT EXISTS fantasy_driver_prices (
     driver_id TEXT,
     price INTEGER, -- Dollar price amount e.g. 24500000
     PRIMARY KEY (driver_id, year, round),
-    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id)
+    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id),
+    FOREIGN KEY (year) REFERENCES race_seasons (season)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_constructor_prices (
@@ -222,7 +224,8 @@ CREATE TABLE IF NOT EXISTS fantasy_constructor_prices (
     constructor_id TEXT,
     price INTEGER, -- Dollar price amount e.g. 24500000
     PRIMARY KEY (constructor_id, year, round),
-    FOREIGN KEY (constructor_id) REFERENCES race_constructors(constructor_id)
+    FOREIGN KEY (constructor_id) REFERENCES race_constructors(constructor_id),
+    FOREIGN KEY (year) REFERENCES race_seasons (season)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_scraping (
@@ -232,7 +235,8 @@ CREATE TABLE IF NOT EXISTS fantasy_scraping (
     is_processed BOOLEAN DEFAULT 0,
     filepath TEXT, -- path/to/saved.html
     PRIMARY KEY (url, year, round),
-    FOREIGN KEY (url) REFERENCES scrape_log(url)
+    FOREIGN KEY (url) REFERENCES scrape_log(url),
+    FOREIGN KEY (year) REFERENCES race_seasons (season)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_raw_driver_data ( -- data from the fantasy json
@@ -280,7 +284,8 @@ CREATE TABLE IF NOT EXISTS fantasy_raw_driver_data ( -- data from the fantasy js
     projectednonegativepoints REAL,
     projectedoverallpoints REAL,
     PRIMARY KEY (year, round, driver_id),
-    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id)
+    FOREIGN KEY (driver_id) REFERENCES race_drivers(driver_id),
+    FOREIGN KEY (year) REFERENCES race_seasons (season)
 );
 
 CREATE TABLE IF NOT EXISTS fantasy_raw_constructor_data ( -- data from the fantasy json
@@ -328,5 +333,6 @@ CREATE TABLE IF NOT EXISTS fantasy_raw_constructor_data ( -- data from the fanta
     projectednonegativepoints REAL,
     projectedoverallpoints REAL,
     PRIMARY KEY (year, round, constructor_id),
-    FOREIGN KEY (constructor_id) REFERENCES race_constructors(constructor_id)
+    FOREIGN KEY (constructor_id) REFERENCES race_constructors(constructor_id),
+    FOREIGN KEY (year) REFERENCES race_seasons (season)
 );

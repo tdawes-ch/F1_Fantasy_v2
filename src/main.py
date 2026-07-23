@@ -20,6 +20,7 @@ from logging_utils.logger_config import setup_logging
 from toolbox import network
 from datetime import datetime
 from datetime import datetime
+from pipelines import offline_mode, online_mode
 
 # setting up console thing
 console = Console()
@@ -28,6 +29,7 @@ def _def_check_offline_mode(results: list):
     pass
 
 def main():
+    offline_only = False
     start_time = datetime.now()
     print(f"[b]Start Time:[/b] {start_time}")
     # setup logs
@@ -77,14 +79,15 @@ def main():
             # if no data in table,
                 # need data!!
             # else show limits of data (e.g. only got data from x to y years)
+    network_check, network_error = checker.did_check_pass("network")    
+    offline_only = not(network_check)
 
-    do_check = prompts.ask_options(question="[b]Run speedtest?[/b]",
-                                   options=["Yes", "No"])
-    
-    network_check, network_error = checker.did_check_pass("network")
-    if do_check == 1:
+    if not(offline_only):
+        console.print("Network test passed! 🎉")
+        do_check = prompts.ask_options(question="[b]Run speedtest?[/b]",
+                                       options=["Yes", "No"])
+        if do_check == 1:
         # Network Status:
-        if network_check:
             console.print("\n[b]Running network test:[/b]")
             with get_progress_bar() as network_test:
                 network_task = network_test.add_task("Running network speedtest...", total=1)
@@ -99,41 +102,14 @@ def main():
                     else:
                         network_test.update(network_task, description=f"[red]Speedtest complete.[/red]")
             prompts.network_status(stats)
-            
-        else:
-            prompts.announce_offline_mode(network_error)
-            
-    base_url = "https://www.formula1.com/en/results/{fyear}/races"
-    print()
-
-    start_year, end_year = prompts.get_valid_years()
-    num_seasons = end_year - start_year + 1
-    
-    # console.print(f"\nPreparing to scrape {num_seasons} season(s)...\n")
-    # get races from each year
-    with get_progress_bar() as year_progress:
-        console.print(f"[b]\nGetting and processing the {num_seasons} season overview page(s):[/b]")
-        get_all_races.run(start_year,end_year,base_url,year_progress)
-
-    # get the race html and extract info
-    with get_progress_bar() as race_progress:
-        console.print(f"[b]\nGetting and processing individual races:[/b]")
-        get_race_data.run(start_year,end_year,race_progress,flag='db')
-
-    # get session html (e.g. practice 1, qualy, etc.)
-    with get_progress_bar() as session_progress:
-        console.print(f"[b]\nGetting and processing individual race sessions:[/b]")
-        get_session_data.run(start_year, end_year, session_progress)
-
-    # get fantasy json data, but only if the end year is in
-    current_year = int(datetime.now().strftime("%Y"))
-    if current_year in range(start_year, end_year + 1):
-        with get_progress_bar() as fantasy_data_progress:
-            console.print(f"[b]\nGetting and processing fantasy data:[/b]")
-            get_fantasy_prices.run(fantasy_data_progress)
     else:
-        console.print(f"[b]\nSkipping getting fantasy data as current year ({current_year}) is not within range ({start_year} -> {end_year}).[/b]")
+        prompts.announce_offline_mode(network_error)
 
+    offline_mode.run() if offline_only else online_mode.run()  
+            
+    start_year, end_year = prompts.get_valid_years()
+    online_mode.run_scraping(start_year, end_year)
+    
     # here marks the end of all scraping ^ now onto processing v
 
     with get_progress_bar() as migration_progress:

@@ -98,10 +98,10 @@ class SetupChecker:
         for var_name, filepath in TRACKED_LOCATIONS.items():
             if filepath.suffix: # If it's a file
                 if not fm.check_location(filepath, flag='file'):
-                    self._missing_files.append(var_name, filepath)
+                    self._missing_files.append([var_name, filepath])
             else: # it's a directory
                 if not fm.check_location(filepath, flag='dir'):
-                    self._missing_locations.append(var_name, filepath)
+                    self._missing_locations.append([var_name, filepath])
         
         if self._missing_locations:
             for _, filepath in self._missing_locations:

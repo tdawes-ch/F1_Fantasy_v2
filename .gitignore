@@ -226,9 +226,12 @@ __marimo__/
 *.pyc
 *.json
 !rules.json
+!rules_compact.json
+
 
 # in case fastf1 module gets used
 f1_cache/
 f1cache/
 
 .VSCodeCounter/
+*.DS_Store

@@ -347,3 +347,19 @@ def get_session_results(session_id: int) -> list[dict]:
 #pprint(results)
 
 #print(get_session_ids(1255,["Race Results", "Qualifying"]))
+
+def get_all_filepath_url() -> list[list]:
+    filepath_url = []
+    with connection.get_db(DB_PATH) as conn:  # type: ignore
+        cursor = conn.cursor()
+        cursor.execute("""
+                       SELECT filepath, url
+                         FROM scrape_log
+                        WHERE status = 'C';
+                       """)
+        output = cursor.fetchall()
+    if output:
+        for row in output:
+            filepath_url.append([row[0], # filepath
+                                 row[1]]) # url
+    return filepath_url

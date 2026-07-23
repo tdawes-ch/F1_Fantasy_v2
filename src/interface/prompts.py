@@ -95,7 +95,6 @@ def get_valid_years() -> tuple[int, int]:
     Asks the user for start and end years with strict validation boundaries.
     """
     CURRENT_YEAR = int(datetime.now().strftime("%Y"))  # Setting current calendar context
-    print("[b]Let's get scraping![/b]")
     
     while True:
         # IntPrompt automatically forces the user to input a valid integer
@@ -208,7 +207,21 @@ def scrape_anyway(message: str = ""):
         case "n": 
             return False
         
-def ask_options(options: list[str], question: str = "", confirm: bool = False, verbose: bool = False) -> int | None:
+def ask_options(options: list[str], 
+                question: str = "", 
+                confirm: bool = False, 
+                verbose: bool = False) -> int | None:
+    """Asks the user to choose one of the options selected
+
+    Args:
+        options (list[str]): The list of available options you want to pass to the user
+        question (str, optional): A question to ask the user. This helps them decide on the option to select. Defaults to "".
+        confirm (bool, optional): Asks the user to confirm if their selection is what they want. Defaults to False.
+        verbose (bool, optional): A flag to show whether or not to repeat the option back to the user once selected. Defaults to False.
+
+    Returns:
+        int | None: The number of the option they selected e.g. 1 = first option. Use i-1 for index.
+    """
     # print options
     print(f"\n{question}")
     for i, option in enumerate(options):

@@ -3,6 +3,7 @@ from pathlib import Path
 import csv
 from typing import Literal
 import json
+from toolbox import database_query
 
 def load_html_file(filepath: Path | str) -> BeautifulSoup:
     """Loads an HTML file from a filepath
@@ -154,3 +155,21 @@ def get_headers(list_dict:list[dict]) -> list[str]:
         return headers
     else:
         return []
+    
+def check_logged_filepaths() -> tuple[list, list]:
+    filepaths_and_urls = database_query.get_all_filepath_url()
+
+    exists, failed = [], []
+    for filepath, url in filepaths_and_urls:
+        match check_location(filepath):
+            case True:
+                exists.append([filepath, url])
+            case False:
+                failed.append([filepath, url])
+            case _:
+                raise ValueError(f"Unknown result for: file_management.check_location(filepath={filepath})")
+    
+    return exists, failed
+
+def search_for_files(root: Path, type: str):
+    pass
